@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ECF.Simulation
+namespace ECF.Behaviours
 {
     public interface ISimulated
     {

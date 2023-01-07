@@ -1,11 +1,14 @@
 ﻿using System;
-using ECF.Simulation.Systems;
+using ECF.Behaviours.Systems;
+using ECF.Behaviours;
+using ECF.Domain;
+using ECF.Domain.Common;
 
-namespace ECF.Simulation
+namespace ECF.Behaviours
 {
     public interface ISimulation
     {
-        int Time { get; }
+        ObservableValue<int> Time { get; }
         void Tick(int delta);
         void Add(ISimulated simulated);
         void Remove(ISimulated simulated);
@@ -18,12 +21,8 @@ namespace ECF.Simulation
         T GetSystem<T>() where T : ISystem;
         void SaveState();
         ICropTemplateFactory CropTemplateFactory { get; }
-        IStorageService Storage { get; }
         IInventorySystem Inventory { get; }
-    }
-
-    public interface ISystem : ISimulated
-    {
-        void SaveState();
+        int GetRandom(int min, int max);
+        SimulationState State { get; }
     }
 }

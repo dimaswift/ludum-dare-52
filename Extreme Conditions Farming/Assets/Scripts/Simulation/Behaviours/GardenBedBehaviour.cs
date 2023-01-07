@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using ECF.Domain;
 using ECF.Domain.Common;
-using ECF.Simulation.Systems;
+using ECF.Behaviours.Systems;
 
-namespace ECF.Simulation.Behaviours
+namespace ECF.Behaviours.Behaviours
 {
     public class GardenBedBehaviour : ISimulated, IGardenBedBehaviour
     {

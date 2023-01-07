@@ -2,7 +2,7 @@
 using ECF.Domain;
 using ECF.Domain.Common;
 
-namespace ECF.Simulation.Behaviours
+namespace ECF.Behaviours.Behaviours
 {
     public interface IGardenBedBehaviour
     {

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using ECF.Domain;
-using ECF.Simulation;
-using ECF.Simulation.Behaviours;
-using ECF.Simulation.Systems;
+using ECF.Behaviours;
+using ECF.Behaviours.Behaviours;
+using ECF.Behaviours.Systems;
 using NUnit.Framework;
 
 public class CropTests
@@ -10,8 +10,7 @@ public class CropTests
     [Test]
     public void GardenBedBehaviourPhasesTestPasses()
     {
-        var storage = new MockStorage();
-        var simulation = new Simulation(storage, new InventorySystem(storage));
+        var simulation = new Simulation();
         var bed = new GardenBedBehaviour(simulation, new GardenBed()
         {
             Number = 0,
@@ -59,11 +58,5 @@ public class CropTests
         Tick(1000);
 
         Assert.AreEqual(CropPhase.Rotten, bed.Phase.Value);
-    }
-
-    [Test]
-    public void CropSystemTestPasses()
-    {
-    
     }
 }

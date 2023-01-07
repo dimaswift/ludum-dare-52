@@ -1,6 +1,8 @@
-﻿using System.Linq;
-using ECF.Simulation;
-using ECF.Simulation.Systems;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ECF.Behaviours;
+using ECF.Behaviours.Systems;
+using ECF.Domain;
 using NUnit.Framework;
 
 public class InventoryTests
@@ -8,9 +10,10 @@ public class InventoryTests
     [Test]
     public void InventoryTestsPasses()
     {
-        var saveSystem = new MockStorage();
-        var inventory = new InventorySystem(saveSystem);
-        var simulation = new Simulation(saveSystem, inventory);
+        var inventory = new InventorySystem(new InventorySystemData()
+        {
+            Items = new List<InventoryItemData>()
+        });
 
         inventory.Add("test", 1);
         Assert.AreEqual(1, inventory.Get("test"));
@@ -40,10 +43,6 @@ public class InventoryTests
         
         Assert.AreEqual(1, inventory.Get("test"));
         
-        simulation.SaveState();
-        
-        simulation = new Simulation(saveSystem, inventory);
-
         Assert.AreEqual(1, inventory.Get("test"));
 
         var added = false;

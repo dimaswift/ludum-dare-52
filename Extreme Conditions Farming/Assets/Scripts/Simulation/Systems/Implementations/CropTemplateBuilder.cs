@@ -1,7 +1,7 @@
 ﻿using System;
 using ECF.Domain;
 
-namespace ECF.Simulation.Systems
+namespace ECF.Behaviours.Systems
 {
     public class CropTemplateBuilder
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ECF.Domain;
 
-namespace ECF.Simulation.Systems
+namespace ECF.Behaviours.Systems
 {
     public interface ICropStorage : ISystem
     {

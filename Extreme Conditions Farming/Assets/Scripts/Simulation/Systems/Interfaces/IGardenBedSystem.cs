@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
+using ECF.Behaviours.Behaviours;
 using ECF.Domain;
-using ECF.Simulation.Behaviours;
 
-namespace ECF.Simulation.Systems
+namespace ECF.Behaviours.Systems
 {
     public interface IGardenBedSystem : ISystem
     {

@@ -1,31 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using ECF.Simulation.Systems;
+using ECF.Behaviours.Systems;
 
 public class MockStorage : IStorageService
 {
     private readonly Dictionary<string, object> savedObjects = new();
-
-    public void OnInit(int time)
-    {
-
-    }
-
-    public void OnDispose()
-    {
-
-    }
-
-    public void OnTick(int time, int delta)
-    {
-
-    }
-
-    public void SaveState()
-    {
-
-    }
-
+    
     public void Save<T>(T value, string key = null)
     {
         if (key == null)
@@ -47,5 +27,17 @@ public class MockStorage : IStorageService
 
         savedObjects[key] = defaultValueHandler();
         return (T)savedObjects[key];
+    }
+
+    public bool Exists<T>(string key = null)
+    {
+        if (key == null)
+            key = typeof(T).Name;
+        return savedObjects.ContainsKey(key);
+    }
+
+    public void Delete<T>()
+    {
+        savedObjects.Remove(typeof(T).Name);
     }
 }

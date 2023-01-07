@@ -1,34 +1,24 @@
 ﻿using System.Collections.Generic;
+using ECF.Behaviours.Behaviours;
 using ECF.Domain;
-using ECF.Simulation.Behaviours;
 
-namespace ECF.Simulation.Systems
+namespace ECF.Behaviours.Systems
 {
     public class GardenBedSystem : BaseSystem, IGardenBedSystem
     {
         private readonly ISimulation simulation;
         private readonly ICropStorage cropStorage;
-
-        private readonly HashSet<GardenBedBehaviour> beds = new();
-
-        public class SaveData
-        {
-            public List<GardenBed> Beds { get; set; }
-        }
         
+        private readonly HashSet<GardenBedBehaviour> beds = new();
         public GardenBedSystem(ISimulation simulation)
         {
             this.simulation = simulation;
             cropStorage = simulation.GetSystem<ICropStorage>();
-            Load();
+            Load(simulation.State.GardenBeds);
         }
 
-        private void Load()
+        private void Load(GardenBedSystemData data)
         {
-            var data = simulation.Storage.Load(() => new SaveData()
-            {
-                Beds = new List<GardenBed>()
-            });
             foreach (GardenBed bed in data.Beds)
             {
                 AddBed(bed, out _);
@@ -47,15 +37,11 @@ namespace ECF.Simulation.Systems
         public override void SaveState()
         {
             base.SaveState();
-            var data = new SaveData()
-            {
-                Beds = new List<GardenBed>()
-            };
+            simulation.State.GardenBeds.Beds.Clear();
             foreach (GardenBedBehaviour bed in beds)
             {
-                data.Beds.Add(bed.GetData());
+                simulation.State.GardenBeds.Beds.Add(bed.GetData());
             }
-            simulation.Storage.Save(data);
         }
 
         public bool Harvest(GardenBedBehaviour gardenBed, out string error)

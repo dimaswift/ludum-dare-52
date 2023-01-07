@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-using ECF.Simulation;
-using ECF.Simulation.Systems;
+using ECF.Behaviours;
+using ECF.Behaviours.Systems;
+using ECF.Domain;
 using NUnit.Framework;
 
 public class SimulationTests
@@ -8,22 +9,21 @@ public class SimulationTests
     [Test]
     public void SimulationTestPasses()
     {
-        var storage = new MockStorage();
         var items = new HashSet<MockSimulated>();
-        var simulation = new Simulation(storage, new InventorySystem(storage));
+        var simulation = new Simulation();
         simulation.OnRemoved += s => { items.Remove(s as MockSimulated); };
         simulation.OnAdded += s => { items.Add(s as MockSimulated); };
         var delta = 10;
         simulation.Tick(delta);
-        Assert.AreEqual(delta, simulation.Time);
+        Assert.AreEqual(delta, simulation.Time.Value);
         simulation.Tick(delta);
-        Assert.AreEqual(delta * 2, simulation.Time);
+        Assert.AreEqual(delta * 2, simulation.Time.Value);
         var simulated = new MockSimulated();
         simulation.Add(simulated);
         Assert.IsFalse(simulation.IsSimulated(simulated));
         Assert.AreEqual(0, items.Count);
         simulation.Tick(delta);
-        Assert.AreEqual(simulated.ActualSpawnTime, simulation.Time - delta);
+        Assert.AreEqual(simulated.ActualSpawnTime, simulation.Time.Value - delta);
         Assert.AreEqual(simulated.ActualSpawnTime, simulation.GetSpawnTime(simulated));
 
         Assert.AreEqual(simulated.ActualLifetime, delta);

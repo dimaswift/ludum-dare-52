@@ -4,53 +4,30 @@ using System.Linq;
 using ECF.Domain;
 using ECF.Domain.Common;
 
-namespace ECF.Simulation.Systems
+namespace ECF.Behaviours.Systems
 {
     public class InventorySystem : IInventorySystem
     {
         public event Action<InventoryItem> OnItemAdded;
         public event Action<InventoryItem> OnItemUsed;
 
-        private readonly SaveData data;
+        private readonly InventorySystemData data;
         
         private readonly Dictionary<string, InventoryItem> items = new();
-
-        private readonly IStorageService storageService;
         
-        public class ItemData
+        public InventorySystem(InventorySystemData data)
         {
-            public int Amount { get; set; }
-            public string Id { get; set; }
-        }
-        
-        private class SaveData
-        {
-            public List<ItemData> Items { get; set; }
-        }
-
-        private SaveData GetDefaultStorage()
-        {
-            return new SaveData()
+            this.data = data;
+            foreach (InventoryItemData d in data.Items)
             {
-                Items = new List<ItemData>()
-            };
-        }
-        
-        public InventorySystem(IStorageService storageService)
-        {
-            this.storageService = storageService;
-            data = storageService.Load(GetDefaultStorage);
-            foreach (ItemData data in data.Items)
-            {
-                items.Add(data.Id, new InventoryItem()
+                items.Add(d.Id, new InventoryItem()
                 {
-                    Id = data.Id,
-                    Amount = new ObservableValue<int>(data.Amount)
+                    Id = d.Id,
+                    Amount = new ObservableValue<int>(d.Amount)
                 });
             }
         }
         
- 
         public void Add(string id, int amount)
         {
             if (items.TryGetValue(id, out var item))
@@ -96,12 +73,11 @@ namespace ECF.Simulation.Systems
 
         public void Save()
         {
-            data.Items = items.Select(item => new ItemData
+            data.Items = items.Select(item => new InventoryItemData
             {
                 Amount = item.Value.Amount.Value,
                 Id = item.Value.Id
             }).ToList();
-            storageService.Save(data);
         }
     }
 }

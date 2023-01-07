@@ -1,6 +1,6 @@
 ﻿using ECF.Domain;
 
-namespace ECF.Simulation
+namespace ECF.Behaviours
 {
     public static class Extensions
     {

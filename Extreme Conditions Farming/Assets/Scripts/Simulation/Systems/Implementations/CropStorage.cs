@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using ECF.Domain;
 
-namespace ECF.Simulation.Systems
+namespace ECF.Behaviours.Systems
 {
     public class CropStorage : BaseSystem, ICropStorage
     {
-        private readonly SaveData data;
+        private readonly CropStorageData data;
         private readonly HashSet<Crop> crops = new();
         private readonly ISimulation simulation;
 
@@ -13,10 +13,8 @@ namespace ECF.Simulation.Systems
         {
             this.simulation = simulation;
 
-            data = this.simulation.Storage.Load(() => new SaveData()
-            {
-                Crops = new List<Crop>()
-            });
+            data = this.simulation.State.CropStorage;
+            
             foreach (var crop in data.Crops)
             {
                 crops.Add(crop);
@@ -28,7 +26,6 @@ namespace ECF.Simulation.Systems
             base.SaveState();
             data.Crops.Clear();
             data.Crops.AddRange(crops);
-            simulation.Storage.Save(data);
         }
 
         public bool Sell(Crop crop, out string error)
@@ -78,11 +75,6 @@ namespace ECF.Simulation.Systems
                 default:
                     return false;
             }
-        }
-        
-        private class SaveData
-        {
-            public List<Crop> Crops { get; set; }
         }
         
         public void Add(Crop crop)

@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using ECF.Simulation.Systems;
+using ECF.Behaviours.Systems;
+using ECF.Domain;
+using ECF.Domain.Common;
+using UnityEngine;
+using Random = System.Random;
 
-namespace ECF.Simulation
+namespace ECF.Behaviours
 {
     public class Simulation : ISimulation
     {
+        public SimulationState State => state;
         public ICropTemplateFactory CropTemplateFactory { get; }
-        public IStorageService Storage { get; }
         public IInventorySystem Inventory { get; }
         public event Action<ISimulated> OnAdded;
         public event Action<ISimulated> OnRemoved;
@@ -16,6 +20,8 @@ namespace ECF.Simulation
         private readonly Queue<ISimulated> removeQueue = new();
         private readonly Dictionary<Type, ISystem> systems = new();
         private readonly Dictionary<ISimulated, SimulatedTime> lifeTimes = new();
+        private readonly Random random;
+        private readonly SimulationState state;
         
         private struct SimulatedTime
         {
@@ -29,29 +35,56 @@ namespace ECF.Simulation
             }
         }
 
-        public Simulation(IStorageService storageService, IInventorySystem inventorySystem)
+        public int GetRandom(int min, int max)
         {
-            Inventory = inventorySystem;
-            Storage = storageService;
-            CropTemplateFactory = new CropTemplateFactory();
+            return random.Next(min, max);
         }
 
-        public int Time => time;
 
-        private int time;
+
+        public Simulation(SimulationState state = null)
+        {
+            if (state == null)
+            {
+                state = new SimulationState()
+                {
+                    RandomSeed = 0,
+                    Time = 0,
+                    Inventory = new InventorySystemData()
+                    {
+                        Items = new List<InventoryItemData>()
+                    },
+                    CropStorage = new CropStorageData()
+                    {
+                        Crops = new List<Crop>()
+                    },
+                    GardenBeds = new GardenBedSystemData()
+                    {
+                        Beds = new List<GardenBed>()
+                    },
+                };
+            }
+            this.state = state;
+            Time.Value = this.state.Time;
+            Inventory = new InventorySystem(state.Inventory);
+            CropTemplateFactory = new CropTemplateFactory();
+            random = new Random(this.state.RandomSeed);
+        }
+
+        public ObservableValue<int> Time { get; } = new(0);
 
         private void ProcessSpawned()
         {
             while (addQueue.TryDequeue(out var spawned))
             {
-                spawned.OnInit(time);
+                spawned.OnInit(Time.Value);
                 if (simulatedObjects.Contains(spawned))
                 {
                     continue;
                 }
 
                 simulatedObjects.Add(spawned);
-                lifeTimes.Add(spawned, new SimulatedTime(0, time));
+                lifeTimes.Add(spawned, new SimulatedTime(0, Time.Value));
                 OnAdded?.Invoke(spawned);
             }
         }
@@ -75,7 +108,7 @@ namespace ECF.Simulation
         {
             foreach (ISimulated simulated in simulatedObjects)
             {
-                simulated.OnTick(time, delta);
+                simulated.OnTick(Time.Value, delta);
                 var lifetime = lifeTimes[simulated];
                 lifeTimes[simulated] = new SimulatedTime(lifetime.Time + delta, lifetime.SpawnTime);
             }
@@ -85,7 +118,7 @@ namespace ECF.Simulation
         {
             foreach (var system in systems)
             {
-                system.Value.OnTick(time, delta);
+                system.Value.OnTick(Time.Value, delta);
             }
         }
         
@@ -99,7 +132,7 @@ namespace ECF.Simulation
             
             ProcessDisposed();
 
-            time += delta;
+            Time.Value += delta;
         }
 
         public void Add(ISimulated simulated)
@@ -151,8 +184,8 @@ namespace ECF.Simulation
             {
                 system.Value.SaveState();
             }
-            Inventory.Save();
+            
+            state.Time = Time.Value;
         }
-
     }
 }
