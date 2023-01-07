@@ -63,10 +63,23 @@ namespace ECF.Behaviours
                         Beds = new List<GardenBed>()
                     },
                 };
+
+                for (int i = 0; i < 16; i++)
+                {
+                    state.GardenBeds.Beds.Add(new GardenBed()
+                    {
+                        Status = BedStatus.Empty,
+                        Number = i,
+                        Crop = null,
+                    });
+                }
+                
             }
             this.state = state;
             Time.Value = this.state.Time;
             Inventory = new InventorySystem(state.Inventory);
+            AddSystem<ICropStorage>(new CropStorage(this));
+            AddSystem<IGardenBedSystem>(new GardenBedSystem(this));
             CropTemplateFactory = new CropTemplateFactory();
             random = new Random(this.state.RandomSeed);
         }

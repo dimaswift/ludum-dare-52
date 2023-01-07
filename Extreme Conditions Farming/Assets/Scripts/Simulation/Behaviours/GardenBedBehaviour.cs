@@ -7,13 +7,13 @@ namespace ECF.Behaviours.Behaviours
 {
     public class GardenBedBehaviour : ISimulated, IGardenBedBehaviour
     {
-        public GardenBed GetData() => data;
-        
-        public IObservableValue<BedStatus> Status => status;
-        public IObservableValue<CropPhase> Phase => phase;
+        public GardenBed Data => data;
+        public ObservableValue<CropPhase> Phase { get; } = new(0);
+        public ObservableValue<BedStatus> Status { get; } = new(0);
+        public ObservableValue<int> ShapeLevel { get; } = new (0);
+        public ObservableValue<int> WaterLevel { get; } = new(0);
+        public ObservableValue<int> GrowthProgress { get; } = new(0);
         private CropTemplate template;
-        private readonly ObservableValue<BedStatus> status;
-        private readonly ObservableValue<CropPhase> phase;
         private int nextPhaseProgress;
         private readonly ISimulation simulation;
         private readonly GardenBed data;
@@ -21,14 +21,21 @@ namespace ECF.Behaviours.Behaviours
         public GardenBedBehaviour(ISimulation simulation, GardenBed data)
         {
             this.simulation = simulation;
-            status = new ObservableValue<BedStatus>(data.Status);
-            phase = new ObservableValue<CropPhase>(CropPhase.Seed);
-            this.simulation = simulation;
             this.data = data;
+            Status.Value = data.Status;
+            ShapeLevel.Value = data.ShapeLevel;
+            WaterLevel.Value = data.WaterLevel;
             if (data.Crop != null)
             {
                 PlaceCrop(data.Crop);
             }
+        }
+
+        public void Save()
+        {
+            data.GrowthProgress = GrowthProgress.Value;
+            data.ShapeLevel = ShapeLevel.Value;
+            data.WaterLevel = WaterLevel.Value;
         }
 
         public void OnInit(int time)
@@ -43,24 +50,24 @@ namespace ECF.Behaviours.Behaviours
 
         public void OnTick(int time, int delta)
         {
-            if (data == null || data.Crop == null || status.Value != BedStatus.Planted)
+            if (data == null || data.Crop == null || Status.Value != BedStatus.Planted)
             {
                 return;
             }
 
-            data.GrowthProgress += delta;
+            GrowthProgress.Value += delta;
             
-            while (data.GrowthProgress >= nextPhaseProgress)
+            while (GrowthProgress.Value >= nextPhaseProgress)
             {
-                data.GrowthProgress -= nextPhaseProgress;
+                GrowthProgress.Value -= nextPhaseProgress;
                
-                if (phase.Value == CropPhase.Rotten)
+                if (Phase.Value == CropPhase.Rotten)
                 {
                     break;
                 }
 
-                phase.Value = (CropPhase)((int)phase.Value + 1);
-                nextPhaseProgress = template.PhaseStats.Durations[phase.Value];
+                Phase.Value = (CropPhase)((int)Phase.Value + 1);
+                nextPhaseProgress = template.PhaseStats.Durations[Phase.Value];
             }
         }
         
@@ -99,7 +106,7 @@ namespace ECF.Behaviours.Behaviours
                 return false;
             }
 
-            status.Value = BedStatus.Empty;
+            Status.Value = BedStatus.Empty;
             return true;
         }
 
@@ -112,16 +119,21 @@ namespace ECF.Behaviours.Behaviours
         {
             data.Crop = crop;
             template = simulation.CropTemplateFactory.Get(crop.Id);
-            status.Value = crop.Phase.IsHarvestable() ? BedStatus.Harvestable : BedStatus.Planted;
+            Status.Value = crop.Phase.IsHarvestable() ? BedStatus.Harvestable : BedStatus.Planted;
             nextPhaseProgress = template.PhaseStats.Durations[data.Crop.Phase];
-            phase.Value = data.Crop.Phase;
+            Phase.Value = data.Crop.Phase;
+        }
+
+        public void ImproveShape()
+        {
+            ShapeLevel.Value++;
         }
         
         public bool Plant(CropTemplate template, out string error)
         {
             error = null;
             
-            if (status.Value != BedStatus.Empty)
+            if (Status.Value != BedStatus.Empty)
             {
                 error = $"Garden bed #{data.Number} is not ready to plant";
                 return false;
@@ -168,10 +180,10 @@ namespace ECF.Behaviours.Behaviours
                 Id = template.HarvestId,
                 Attributes = data.Crop.Attributes,
                 Genetics = data.Crop.Genetics,
-                Phase = phase.Value
+                Phase = Phase.Value
             };
             data.Crop = null;
-            status.Value = BedStatus.Harvested;
+            Status.Value = BedStatus.Harvested;
             nextPhaseProgress = 0;
             return true;
         }

@@ -13,7 +13,13 @@ namespace ECF.Views
 {
     public class Game : MonoBehaviour
     {
+        [SerializeField] private ToolController toolController;
+        [SerializeField] private ViewController viewController;
         [SerializeField] private WindowManager windowManager;
+
+        public ToolController Tools => toolController;
+        
+        public ViewController ViewController => viewController;
         
         public ObservableValue<GamePhase> Phase { get; } = new (GamePhase.MainMenu);
         public IStorageService StorageService { get; set; }

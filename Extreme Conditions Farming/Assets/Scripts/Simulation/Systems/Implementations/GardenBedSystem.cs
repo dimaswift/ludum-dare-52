@@ -37,10 +37,9 @@ namespace ECF.Behaviours.Systems
         public override void SaveState()
         {
             base.SaveState();
-            simulation.State.GardenBeds.Beds.Clear();
             foreach (GardenBedBehaviour bed in beds)
             {
-                simulation.State.GardenBeds.Beds.Add(bed.GetData());
+                bed.Save();
             }
         }
 

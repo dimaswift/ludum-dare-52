@@ -6,7 +6,8 @@ namespace ECF.Behaviours.Behaviours
 {
     public interface IGardenBedBehaviour
     {
-        IObservableValue<BedStatus> Status { get; }
+        ObservableValue<BedStatus> Status { get; }
+        ObservableValue<int> ShapeLevel { get; }
         void AddAttribute(CropAttribute attribute);
         void RemoveAttribute(CropAttribute attribute);
         bool HasAttribute(CropAttribute attribute);
