@@ -11,10 +11,11 @@ namespace ECF.Simulation.Systems
         public event Action<InventoryItem> OnItemAdded;
         public event Action<InventoryItem> OnItemUsed;
 
-        private readonly Storage storage;
+        private readonly SaveData data;
+        
         private readonly Dictionary<string, InventoryItem> items = new();
 
-        private readonly ISaveSystem saveSystem;
+        private readonly IStorageService storageService;
         
         public class ItemData
         {
@@ -22,24 +23,24 @@ namespace ECF.Simulation.Systems
             public string Id { get; set; }
         }
         
-        private class Storage
+        private class SaveData
         {
             public List<ItemData> Items { get; set; }
         }
 
-        private Storage GetDefaultStorage()
+        private SaveData GetDefaultStorage()
         {
-            return new Storage()
+            return new SaveData()
             {
                 Items = new List<ItemData>()
             };
         }
         
-        public InventorySystem(ISaveSystem saveSystem)
+        public InventorySystem(IStorageService storageService)
         {
-            this.saveSystem = saveSystem;
-            storage = saveSystem.Load(GetDefaultStorage);
-            foreach (ItemData data in storage.Items)
+            this.storageService = storageService;
+            data = storageService.Load(GetDefaultStorage);
+            foreach (ItemData data in data.Items)
             {
                 items.Add(data.Id, new InventoryItem()
                 {
@@ -49,31 +50,6 @@ namespace ECF.Simulation.Systems
             }
         }
         
-        public void OnInit(int time)
-        {
-            
-        }
-
-        public void OnDispose()
-        {
-            
-        }
-
-        public void OnTick(int time, int delta)
-        {
-            
-        }
-
-        public void Save()
-        {
-            storage.Items = items.Select(item => new ItemData
-            {
-                Amount = item.Value.Amount.Value,
-                Id = item.Value.Id
-            }).ToList();
-            saveSystem.Save(storage);
-        }
-
  
         public void Add(string id, int amount)
         {
@@ -92,14 +68,14 @@ namespace ECF.Simulation.Systems
                 OnItemAdded?.Invoke(item);
             }
         }
-
-        public bool Use(string id)
+        
+        public bool Use(string id, int amount)
         {
-            if (!items.TryGetValue(id, out InventoryItem item) || item.Amount.Value <= 0)
+            if (!items.TryGetValue(id, out InventoryItem item) || item.Amount.Value < amount)
             {
                 return false;
             }
-            item.Amount.Value--;
+            item.Amount.Value -= amount;
             OnItemUsed?.Invoke(item);
             return true;
         }
@@ -116,6 +92,16 @@ namespace ECF.Simulation.Systems
                 return item.Amount.Value;
             }
             return 0;
+        }
+
+        public void Save()
+        {
+            data.Items = items.Select(item => new ItemData
+            {
+                Amount = item.Value.Amount.Value,
+                Id = item.Value.Id
+            }).ToList();
+            storageService.Save(data);
         }
     }
 }

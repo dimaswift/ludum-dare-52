@@ -8,30 +8,29 @@ public class InventoryTests
     [Test]
     public void InventoryTestsPasses()
     {
-        var simulation = new Simulation();
-        var saveSystem = new MockSave();
+        var saveSystem = new MockStorage();
         var inventory = new InventorySystem(saveSystem);
-        simulation.AddSystem(inventory);
-        
+        var simulation = new Simulation(saveSystem, inventory);
+
         inventory.Add("test", 1);
         Assert.AreEqual(1, inventory.Get("test"));
         
         inventory.Add("test", 1);
         Assert.AreEqual(2, inventory.Get("test"));
         
-        var used = inventory.Use("test");
+        var used = inventory.Use("test", 1);
         
         Assert.IsTrue(used);
         
         Assert.AreEqual(1, inventory.Get("test"));
         
-        used = inventory.Use("test");
+        used = inventory.Use("test", 1);
         
         Assert.IsTrue(used);
         
         Assert.AreEqual(0, inventory.Get("test"));
         
-        used = inventory.Use("test");
+        used = inventory.Use("test", 1);
         
         Assert.IsFalse(used);
         
@@ -41,13 +40,10 @@ public class InventoryTests
         
         Assert.AreEqual(1, inventory.Get("test"));
         
-        simulation.SaveSystems();
+        simulation.SaveState();
         
-        simulation = new Simulation();
-        
-        inventory = new InventorySystem(saveSystem);
-        simulation.AddSystem(inventory);
-        
+        simulation = new Simulation(saveSystem, inventory);
+
         Assert.AreEqual(1, inventory.Get("test"));
 
         var added = false;
@@ -69,11 +65,11 @@ public class InventoryTests
             itemUsed = true;
         };
 
-        inventory.Use("test2");
+        inventory.Use("test2", 10);
         
         Assert.IsTrue(itemUsed);
         
-        Assert.AreEqual(99, inventory.Get("test2"));
+        Assert.AreEqual(90, inventory.Get("test2"));
         
         Assert.AreEqual(inventory.GetItems().Count(), 2);
         

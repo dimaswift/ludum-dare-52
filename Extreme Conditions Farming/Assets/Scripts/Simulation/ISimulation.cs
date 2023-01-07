@@ -1,4 +1,5 @@
 ﻿using System;
+using ECF.Simulation.Systems;
 
 namespace ECF.Simulation
 {
@@ -15,11 +16,14 @@ namespace ECF.Simulation
         int GetSpawnTime(ISimulated simulated);
         void AddSystem<T>(T system) where T : ISystem;
         T GetSystem<T>() where T : ISystem;
-        void SaveSystems();
+        void SaveState();
+        ICropTemplateFactory CropTemplateFactory { get; }
+        IStorageService Storage { get; }
+        IInventorySystem Inventory { get; }
     }
 
     public interface ISystem : ISimulated
     {
-        void Save();
+        void SaveState();
     }
 }

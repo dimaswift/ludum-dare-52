@@ -8,75 +8,62 @@ using NUnit.Framework;
 public class CropTests
 {
     [Test]
-    public void CropBehaviourPhasesTestPasses()
+    public void GardenBedBehaviourPhasesTestPasses()
     {
-        var durations = new Dictionary<CropPhase, int>
+        var storage = new MockStorage();
+        var simulation = new Simulation(storage, new InventorySystem(storage));
+        var bed = new GardenBedBehaviour(simulation, new GardenBed()
         {
-            { CropPhase.Seed, 2},
-            { CropPhase.Sprout, 3},
-            { CropPhase.Bud, 3},
-            { CropPhase.Flower, 4},
-            { CropPhase.Green, 5},
-            { CropPhase.Unripe, 6},
-            { CropPhase.Ripe, 7 },
-            { CropPhase.Overripe, 8 },
-            { CropPhase.Rotten, 6 }
-        };
-
-        var template = new CropTemplateBuilder()
-            .WithName("TestCrop");
-
-        foreach (var duration in durations)
-        {
-            template.WithPhaseDuration(duration.Key, duration.Value);
-        }
-        
-        var crop = new CropBehaviour(template.Build());
+            Number = 0,
+            Status = BedStatus.Empty,
+        });
         var time = 0;
-        CropPhase currentPhase = crop.Phase.Value;
-
+        BedStatus currentStatus = bed.Status.Value;
+        var template = simulation.CropTemplateFactory.CreateLinear("Test", "Test", 10, 10, 10, 10);
         void Tick(int delta)
         {
             time += delta;
-            crop.OnTick(time, delta);
+            bed.OnTick(time, delta);
         }
         
-        Assert.AreEqual(CropPhase.Seed, currentPhase);
+        Assert.AreEqual(BedStatus.Empty, currentStatus);
         
-        crop.Phase.Changed += phase =>
+        var planted = bed.Plant(template, out _);
+        
+        Assert.IsFalse(planted);
+        
+        bed.Status.Changed += s =>
         {
-            currentPhase = phase;
+            currentStatus = s;
         };
-
-        Tick(durations[CropPhase.Seed] - 1);
-
-        Assert.AreEqual(crop.Phase.Value, currentPhase);
-        Assert.AreEqual(CropPhase.Seed, currentPhase);
         
-        Tick(1);
-
-        Assert.AreEqual(crop.Phase.Value, currentPhase);
-        Assert.AreEqual(CropPhase.Sprout, currentPhase);
+        Assert.AreEqual(BedStatus.Empty, currentStatus);
         
-        Tick(durations[CropPhase.Bud]);
+        simulation.Inventory.Add(template.SeedId, 1);
+        
+        planted = bed.Plant(template, out _);
 
-        Assert.AreEqual(crop.Phase.Value, currentPhase);
-        Assert.AreEqual(CropPhase.Bud, currentPhase);
+        Assert.IsTrue(planted);
+        
+        Tick(template.PhaseStats.Durations[CropPhase.Seed]);
+
+        Assert.AreEqual(bed.Status.Value, currentStatus);
+        Assert.AreEqual(BedStatus.Planted, currentStatus);
+        
+        Assert.AreEqual(CropPhase.Sprout, bed.Phase.Value);
+        
+        Tick(template.PhaseStats.Durations[CropPhase.Sprout]);
+
+        Assert.AreEqual(CropPhase.Bud, bed.Phase.Value);
         
         Tick(1000);
-        
-        Assert.AreEqual(crop.Phase.Value, currentPhase);
-        Assert.AreEqual(CropPhase.Rotten, currentPhase);
+
+        Assert.AreEqual(CropPhase.Rotten, bed.Phase.Value);
     }
 
     [Test]
     public void CropSystemTestPasses()
     {
-        var simulation = new Simulation();
-        var system = new CropSystem(simulation);
-        var template1 = CropTemplateBuilder.CreateLinear("Crop1", 10, 10, 10, 10);
-        var template2 = CropTemplateBuilder.CreateLinear("Crop2", 20, 20, 20, 20);
-        var crop1 = system.PlantCrop(template1);
-        var crop2 = system.PlantCrop(template2);
+    
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ECF.Simulation;
+using ECF.Simulation.Systems;
 using NUnit.Framework;
 
 public class SimulationTests
@@ -7,8 +8,9 @@ public class SimulationTests
     [Test]
     public void SimulationTestPasses()
     {
+        var storage = new MockStorage();
         var items = new HashSet<MockSimulated>();
-        var simulation = new Simulation();
+        var simulation = new Simulation(storage, new InventorySystem(storage));
         simulation.OnRemoved += s => { items.Remove(s as MockSimulated); };
         simulation.OnAdded += s => { items.Add(s as MockSimulated); };
         var delta = 10;

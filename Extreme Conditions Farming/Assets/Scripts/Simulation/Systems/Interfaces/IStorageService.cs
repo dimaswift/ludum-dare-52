@@ -2,7 +2,7 @@
 
 namespace ECF.Simulation.Systems
 {
-    public interface ISaveSystem : ISystem
+    public interface IStorageService
     {
         void Save<T>(T value, string key = null);
         T Load<T>(Func<T> defaultValueHandler);

@@ -9,5 +9,6 @@ namespace ECF.Domain
         public Dictionary<CropPhase, int> WaterConsumption { get; set; }
         public Dictionary<CropPhase, int> SellPrices { get; set; }
         public Dictionary<CropPhase, int> SeedConversionRate { get; set; }
+        public Dictionary<CropPhase, int> HarvestAmount { get; set; }
     }
 }

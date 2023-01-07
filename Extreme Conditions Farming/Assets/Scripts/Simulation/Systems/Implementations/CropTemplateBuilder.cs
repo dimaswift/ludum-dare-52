@@ -5,6 +5,7 @@ namespace ECF.Simulation.Systems
 {
     public class CropTemplateBuilder
     {
+
         private readonly CropTemplate template = new()
         {
             PhaseStats = new()
@@ -18,7 +19,7 @@ namespace ECF.Simulation.Systems
 
         private static readonly CropPhase[] Phases = Enum.GetValues(typeof(CropPhase)) as CropPhase[];
         
-        public CropTemplate Build()
+        internal CropTemplate Build()
         {
             foreach (CropPhase phase in Phases)
             {
@@ -42,6 +43,7 @@ namespace ECF.Simulation.Systems
                     template.PhaseStats.SeedConversionRate[phase] = 1;
                 }
             }
+            
             return template;
         }
         
@@ -50,6 +52,7 @@ namespace ECF.Simulation.Systems
             template.Name = name;
             return this;
         }
+        
         
         public CropTemplateBuilder WithPhaseDuration(CropPhase phase, int ticks)
         {
@@ -109,17 +112,6 @@ namespace ECF.Simulation.Systems
                 template.PhaseStats.SellPrices[phase] = price;
             }
             return this;
-        }
-
-        public static CropTemplate CreateLinear(string name, int growthRate, int waterConsumption, int seedConversionRate, int sellPrice)
-        {
-            return new CropTemplateBuilder()
-                .WithName(name)
-                .WithPhaseDuration(growthRate)
-                .WithWaterConsumption(waterConsumption)
-                .WithSeedConversionRate(seedConversionRate)
-                .WithSellPrice(sellPrice)
-                .Build();
         }
     }
 }

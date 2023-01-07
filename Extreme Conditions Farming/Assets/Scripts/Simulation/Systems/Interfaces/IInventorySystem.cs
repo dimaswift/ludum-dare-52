@@ -5,12 +5,15 @@ using ECF.Domain.Common;
 
 namespace ECF.Simulation.Systems
 {
-    public interface IInventorySystem : ISystem
+    public interface IInventorySystem
     {
         event Action<InventoryItem> OnItemAdded;
         event Action<InventoryItem> OnItemUsed;
         void Add(string id, int amount);
-        bool Use(string id);
+        bool Use(string id, int amount);
+        
         IEnumerable<InventoryItem> GetItems();
+        int Get(string id);
+        void Save();
     }
 }

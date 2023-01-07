@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using ECF.Simulation.Systems;
 
 namespace ECF.Simulation
 {
     public class Simulation : ISimulation
     {
+        public ICropTemplateFactory CropTemplateFactory { get; }
+        public IStorageService Storage { get; }
+        public IInventorySystem Inventory { get; }
         public event Action<ISimulated> OnAdded;
         public event Action<ISimulated> OnRemoved;
         private readonly HashSet<ISimulated> simulatedObjects = new();
         private readonly Queue<ISimulated> addQueue = new();
         private readonly Queue<ISimulated> removeQueue = new();
         private readonly Dictionary<Type, ISystem> systems = new();
-
         private readonly Dictionary<ISimulated, SimulatedTime> lifeTimes = new();
         
         private struct SimulatedTime
@@ -24,6 +27,13 @@ namespace ECF.Simulation
                 Time = time;
                 SpawnTime = spawnTime;
             }
+        }
+
+        public Simulation(IStorageService storageService, IInventorySystem inventorySystem)
+        {
+            Inventory = inventorySystem;
+            Storage = storageService;
+            CropTemplateFactory = new CropTemplateFactory();
         }
 
         public int Time => time;
@@ -135,12 +145,14 @@ namespace ECF.Simulation
             return (T) systems[typeof(T)];
         }
 
-        public void SaveSystems()
+        public void SaveState()
         {
             foreach (var system in systems)
             {
-                system.Value.Save();
+                system.Value.SaveState();
             }
+            Inventory.Save();
         }
+
     }
 }

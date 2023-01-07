@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ECF.Simulation.Systems;
 
-public class MockSave : ISaveSystem
+public class MockStorage : IStorageService
 {
     private readonly Dictionary<string, object> savedObjects = new();
 
@@ -21,7 +21,7 @@ public class MockSave : ISaveSystem
 
     }
 
-    public void Save()
+    public void SaveState()
     {
 
     }
