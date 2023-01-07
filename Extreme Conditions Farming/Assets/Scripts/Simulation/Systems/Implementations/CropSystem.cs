@@ -30,6 +30,11 @@ namespace ECF.Simulation.Systems
             
         }
 
+        public void Save()
+        {
+            
+        }
+
         public CropBehaviour PlantCrop(CropTemplate template)
         {
             var crop = new CropBehaviour(template);

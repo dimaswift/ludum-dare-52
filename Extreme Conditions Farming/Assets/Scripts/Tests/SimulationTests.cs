@@ -5,12 +5,12 @@ using NUnit.Framework;
 public class SimulationTests
 {
     [Test]
-    public void SimulationTestsSimplePasses()
+    public void SimulationTestPasses()
     {
         var items = new HashSet<MockSimulated>();
         var simulation = new Simulation();
-        simulation.OnDisposed += s => { items.Remove(s as MockSimulated); };
-        simulation.OnSpawned += s => { items.Add(s as MockSimulated); };
+        simulation.OnRemoved += s => { items.Remove(s as MockSimulated); };
+        simulation.OnAdded += s => { items.Add(s as MockSimulated); };
         var delta = 10;
         simulation.Tick(delta);
         Assert.AreEqual(delta, simulation.Time);

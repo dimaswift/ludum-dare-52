@@ -5,11 +5,12 @@ namespace ECF.Simulation
 {
     public class Simulation : ISimulation
     {
-        public event Action<ISimulated> OnSpawned;
-        public event Action<ISimulated> OnDisposed;
+        public event Action<ISimulated> OnAdded;
+        public event Action<ISimulated> OnRemoved;
         private readonly HashSet<ISimulated> simulatedObjects = new();
-        private readonly Queue<ISimulated> spawnQueue = new();
-        private readonly Queue<ISimulated> disposeQueue = new();
+        private readonly Queue<ISimulated> addQueue = new();
+        private readonly Queue<ISimulated> removeQueue = new();
+        private readonly Dictionary<Type, ISystem> systems = new();
 
         private readonly Dictionary<ISimulated, SimulatedTime> lifeTimes = new();
         
@@ -31,7 +32,7 @@ namespace ECF.Simulation
 
         private void ProcessSpawned()
         {
-            while (spawnQueue.TryDequeue(out var spawned))
+            while (addQueue.TryDequeue(out var spawned))
             {
                 spawned.OnInit(time);
                 if (simulatedObjects.Contains(spawned))
@@ -41,13 +42,13 @@ namespace ECF.Simulation
 
                 simulatedObjects.Add(spawned);
                 lifeTimes.Add(spawned, new SimulatedTime(0, time));
-                OnSpawned?.Invoke(spawned);
+                OnAdded?.Invoke(spawned);
             }
         }
 
         private void ProcessDisposed()
         {
-            while (disposeQueue.TryDequeue(out var disposed))
+            while (removeQueue.TryDequeue(out var disposed))
             {
                 disposed.OnDispose();
                 if (simulatedObjects.Contains(disposed))
@@ -56,11 +57,11 @@ namespace ECF.Simulation
                     lifeTimes.Remove(disposed);
                 }
 
-                OnDisposed?.Invoke(disposed);
+                OnRemoved?.Invoke(disposed);
             }
         }
 
-        private void ProcessTick(int delta)
+        private void ProcessSimulated(int delta)
         {
             foreach (ISimulated simulated in simulatedObjects)
             {
@@ -69,12 +70,22 @@ namespace ECF.Simulation
                 lifeTimes[simulated] = new SimulatedTime(lifetime.Time + delta, lifetime.SpawnTime);
             }
         }
+
+        private void ProcessSystems(int delta)
+        {
+            foreach (var system in systems)
+            {
+                system.Value.OnTick(time, delta);
+            }
+        }
         
         public void Tick(int delta)
         {
             ProcessSpawned();
 
-            ProcessTick(delta);
+            ProcessSimulated(delta);
+            
+            ProcessSystems(delta);
             
             ProcessDisposed();
 
@@ -83,12 +94,12 @@ namespace ECF.Simulation
 
         public void Add(ISimulated simulated)
         {
-            spawnQueue.Enqueue(simulated);
+            addQueue.Enqueue(simulated);
         }
 
         public void Remove(ISimulated simulated)
         {
-            disposeQueue.Enqueue(simulated);
+            removeQueue.Enqueue(simulated);
         }
 
         public bool IsSimulated(ISimulated simulated)
@@ -112,6 +123,24 @@ namespace ECF.Simulation
                 return lifetime.SpawnTime;
             }
             return -1;
+        }
+
+        public void AddSystem<T>(T system) where T : ISystem
+        {
+            systems.Add(typeof(T), system);
+        }
+
+        public T GetSystem<T>() where T : ISystem
+        {
+            return (T) systems[typeof(T)];
+        }
+
+        public void SaveSystems()
+        {
+            foreach (var system in systems)
+            {
+                system.Value.Save();
+            }
         }
     }
 }

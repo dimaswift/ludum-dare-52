@@ -111,10 +111,10 @@ namespace ECF.Simulation.Systems
             return this;
         }
 
-        public static CropTemplate CreateCorn(int growthRate, int waterConsumption, int seedConversionRate, int sellPrice)
+        public static CropTemplate CreateLinear(string name, int growthRate, int waterConsumption, int seedConversionRate, int sellPrice)
         {
             return new CropTemplateBuilder()
-                .WithName("Corn")
+                .WithName(name)
                 .WithPhaseDuration(growthRate)
                 .WithWaterConsumption(waterConsumption)
                 .WithSeedConversionRate(seedConversionRate)
