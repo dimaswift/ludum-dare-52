@@ -81,12 +81,12 @@ namespace ECF.Simulation
             time += delta;
         }
 
-        public void Spawn(ISimulated simulated)
+        public void Add(ISimulated simulated)
         {
             spawnQueue.Enqueue(simulated);
         }
 
-        public void Dispose(ISimulated simulated)
+        public void Remove(ISimulated simulated)
         {
             disposeQueue.Enqueue(simulated);
         }

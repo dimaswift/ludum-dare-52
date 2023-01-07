@@ -6,8 +6,8 @@ namespace ECF.Simulation
     {
         int Time { get; }
         void Tick(int delta);
-        void Spawn(ISimulated simulated);
-        void Dispose(ISimulated simulated);
+        void Add(ISimulated simulated);
+        void Remove(ISimulated simulated);
         bool IsSimulated(ISimulated simulated);
         event Action<ISimulated> OnSpawned;
         event Action<ISimulated> OnDisposed;

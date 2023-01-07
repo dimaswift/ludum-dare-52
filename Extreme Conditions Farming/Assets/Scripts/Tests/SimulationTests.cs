@@ -17,7 +17,7 @@ public class SimulationTests
         simulation.Tick(delta);
         Assert.AreEqual(delta * 2, simulation.Time);
         var simulated = new MockSimulated();
-        simulation.Spawn(simulated);
+        simulation.Add(simulated);
         Assert.IsFalse(simulation.IsSimulated(simulated));
         Assert.AreEqual(0, items.Count);
         simulation.Tick(delta);
@@ -32,7 +32,7 @@ public class SimulationTests
         Assert.AreEqual(delta, simulation.GetLifetime(simulated));
         simulation.Tick(delta);
         Assert.AreEqual(delta * 2, simulation.GetLifetime(simulated));
-        simulation.Dispose(simulated);
+        simulation.Remove(simulated);
         Assert.AreEqual(1, items.Count);
         Assert.IsFalse(simulated.Disposed);
         simulation.Tick(delta);
