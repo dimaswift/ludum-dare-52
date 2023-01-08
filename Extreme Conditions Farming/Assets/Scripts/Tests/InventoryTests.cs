@@ -16,34 +16,34 @@ public class InventoryTests
         });
 
         inventory.Add("test", 1);
-        Assert.AreEqual(1, inventory.Get("test"));
+        Assert.AreEqual(1, inventory.Get("test").Value);
         
         inventory.Add("test", 1);
-        Assert.AreEqual(2, inventory.Get("test"));
+        Assert.AreEqual(2, inventory.Get("test").Value);
         
         var used = inventory.Use("test", 1);
         
         Assert.IsTrue(used);
         
-        Assert.AreEqual(1, inventory.Get("test"));
+        Assert.AreEqual(1, inventory.Get("test").Value);
         
         used = inventory.Use("test", 1);
         
         Assert.IsTrue(used);
         
-        Assert.AreEqual(0, inventory.Get("test"));
+        Assert.AreEqual(0, inventory.Get("test").Value);
         
         used = inventory.Use("test", 1);
         
         Assert.IsFalse(used);
         
-        Assert.AreEqual(0, inventory.Get("test"));
+        Assert.AreEqual(0, inventory.Get("test").Value);
         
         inventory.Add("test", 1);
         
-        Assert.AreEqual(1, inventory.Get("test"));
+        Assert.AreEqual(1, inventory.Get("test").Value);
         
-        Assert.AreEqual(1, inventory.Get("test"));
+        Assert.AreEqual(1, inventory.Get("test").Value);
 
         var added = false;
         
@@ -53,9 +53,9 @@ public class InventoryTests
         
         Assert.IsTrue(added);
 
-        Assert.AreEqual(100, inventory.Get("test2"));
+        Assert.AreEqual(100, inventory.Get("test2").Value);
 
-        Assert.AreEqual(1, inventory.Get("test"));
+        Assert.AreEqual(1, inventory.Get("test").Value);
 
         bool itemUsed = false;
 
@@ -68,7 +68,7 @@ public class InventoryTests
         
         Assert.IsTrue(itemUsed);
         
-        Assert.AreEqual(90, inventory.Get("test2"));
+        Assert.AreEqual(90, inventory.Get("test2").Value);
         
         Assert.AreEqual(inventory.GetItems().Count(), 2);
         

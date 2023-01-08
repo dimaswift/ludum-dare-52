@@ -90,6 +90,10 @@ namespace ECF.Views
             StatusOnChanged(behaviour.Status.Value);
             WaterLevelOnChanged(this.behaviour.WaterLevel.Value);
             targetWaterLevelNormalized = currentWaterLevelNormalized;
+            if (this.behaviour.Data.Crop != null)
+            {
+                PlaceCrop(this.behaviour.Data.Crop);
+            }
         }
 
         private void WaterLevelOnChanged(int water)
@@ -190,6 +194,8 @@ namespace ECF.Views
                     return behaviour.Status.Value == BedStatus.Empty && behaviour.ShapeLevel.Value < formStates.Length - 1;
                 case ToolType.WateringCan:
                     return behaviour.WaterLevel.Value < 10;
+                case ToolType.SeedBag:
+                    return behaviour.Status.Value == BedStatus.Empty;
             }
             
             return supportedTools.Contains(tool.type);
@@ -215,6 +221,15 @@ namespace ECF.Views
             behaviour.Water(2);
         }
 
+        private void PlaceCrop(Crop crop)
+        {
+            var config = Game.Instance.ViewController.CropConfigs[crop.Id];
+            var cropObject = Instantiate(config.prefab.gameObject, transform.position, Quaternion.identity)
+                .GetComponent<CropView>();
+            cropObject.transform.SetParent(transform);
+            cropObject.SetUp(crop, behaviour.Phase);
+        }
+
         public void UseTool(Tool tool)
         {
             lastToolUseTime = Time.time;
@@ -233,6 +248,14 @@ namespace ECF.Views
                     {
                         Water();
                         return;
+                    }
+                    break;
+                case ToolType.SeedBag:
+                    var bag = tool as SeedBag;
+                    var template = Game.Instance.Simulation.CropTemplateFactory.Get(bag.templateId);
+                    if (behaviour.Plant(template, out var crop, out _))
+                    {
+                        PlaceCrop(crop);
                     }
                     break;
             }

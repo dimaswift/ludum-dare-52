@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ECF.Behaviours.Systems;
 using ECF.Domain;
 using ECF.Domain.Common;
-using UnityEngine;
 using Random = System.Random;
 
 namespace ECF.Behaviours
@@ -40,10 +39,12 @@ namespace ECF.Behaviours
             return random.Next(min, max);
         }
 
-
+            
 
         public Simulation(SimulationState state = null)
         {
+            CropTemplateFactory = new CropTemplateFactory();
+            
             if (state == null)
             {
                 state = new SimulationState()
@@ -78,10 +79,14 @@ namespace ECF.Behaviours
             this.state = state;
             Time.Value = this.state.Time;
             Inventory = new InventorySystem(state.Inventory);
+           
+            random = new Random(this.state.RandomSeed);
+        }
+
+        public void CreateSystems()
+        {
             AddSystem<ICropStorage>(new CropStorage(this));
             AddSystem<IGardenBedSystem>(new GardenBedSystem(this));
-            CropTemplateFactory = new CropTemplateFactory();
-            random = new Random(this.state.RandomSeed);
         }
 
         public ObservableValue<int> Time { get; } = new(0);
@@ -197,7 +202,7 @@ namespace ECF.Behaviours
             {
                 system.Value.SaveState();
             }
-            
+            Inventory.Save();
             state.Time = Time.Value;
         }
     }

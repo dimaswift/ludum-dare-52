@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using ECF.Domain;
 using ECF.Domain.Common;
 using ECF.Behaviours.Systems;
+using UnityEngine;
+using Resources = ECF.Domain.Resources;
 
 namespace ECF.Behaviours.Behaviours
 {
@@ -40,6 +42,11 @@ namespace ECF.Behaviours.Behaviours
             data.GrowthProgress = GrowthProgress.Value;
             data.ShapeLevel = ShapeLevel.Value;
             data.WaterLevel = WaterLevel.Value;
+            data.Status = Status.Value;
+            if (data.Crop != null)
+            {
+                data.Crop.Phase = Phase.Value;
+            }
         }
 
         public void OnInit(int time)
@@ -148,10 +155,10 @@ namespace ECF.Behaviours.Behaviours
             waterDepletionCounter = 0;
         }
         
-        public bool Plant(CropTemplate template, out string error)
+        public bool Plant(CropTemplate template, out Crop crop, out string error)
         {
             error = null;
-            
+            crop = null;
             if (Status.Value != BedStatus.Empty)
             {
                 error = $"Garden bed #{data.Number} is not ready to plant";
@@ -170,7 +177,7 @@ namespace ECF.Behaviours.Behaviours
                 return false;
             }
             
-            var crop = new Crop()
+            crop = new Crop()
             {
                 Id = template.Id,
                 Attributes = new List<CropAttribute>(),

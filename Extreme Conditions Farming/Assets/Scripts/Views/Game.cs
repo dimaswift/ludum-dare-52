@@ -80,7 +80,23 @@ namespace ECF.Views
         
         public void StartSimulation(PlayerSave save)
         {
+            bool isNew = save.SimulationState == null;
             Simulation = new Simulation(save.SimulationState);
+            foreach (var cropConfig in viewController.CropConfigs)
+            {
+                Simulation.CropTemplateFactory.CreateLinear(
+                    cropConfig.Value.name, 
+                    cropConfig.Value.displayName, 
+                    cropConfig.Value.growthRate, 
+                    cropConfig.Value.waterConsumption,
+                    cropConfig.Value.seedConversionRate, 
+                    cropConfig.Value.sellPrice);
+            }
+            Simulation.CreateSystems();
+            if (isNew)
+            {
+                Simulation.Inventory.Add(Simulation.CropTemplateFactory.Get("Tomato").SeedId, 3);
+            }
             OnNewSimulationCreated?.Invoke();
             Phase.Value = GamePhase.Playing;
         }
@@ -116,6 +132,7 @@ namespace ECF.Views
                 Simulation.SaveState();
                 save.SimulationState = Simulation.State;
             }
+            
             StorageService.Save(save);
         }
 

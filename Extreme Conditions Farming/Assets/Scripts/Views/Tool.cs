@@ -1,3 +1,5 @@
+using System;
+using ECF.Behaviours;
 using ECF.Domain;
 using UnityEngine;
 
@@ -20,10 +22,15 @@ namespace ECF.Views
 
         private IToolTarget currentTarget;
         private readonly RaycastHit[] raycastBuffer = new RaycastHit[10];
-        private bool isActive;
+
         private float noTargetTime;
 
         private Camera cam;
+
+        public virtual void Init(ISimulation simulation)
+        {
+            
+        }
 
         private void Awake()
         {
@@ -34,16 +41,18 @@ namespace ECF.Views
 
         public virtual void Activate()
         {
+            if (!CanActivate())
+            {
+                return;
+            }
             if (currentTarget == null || (!currentTarget.CanUseTool(this))) return;
             animator.SetBool(Active, true);
-            isActive = true;
         }
 
         public virtual void Stop()
         {
             RemoveTarget();
             animator.SetBool(Active, false);
-            isActive = false;
         }
 
         private void FixedUpdate()
@@ -65,6 +74,8 @@ namespace ECF.Views
                 currentTarget = null;
             }
         }
+
+        protected virtual bool CanActivate() => true;
 
         protected IToolTarget GetRaycastTarget(Ray ray)
         {

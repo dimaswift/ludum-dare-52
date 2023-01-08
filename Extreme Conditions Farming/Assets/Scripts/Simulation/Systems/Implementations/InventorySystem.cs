@@ -62,13 +62,13 @@ namespace ECF.Behaviours.Systems
             return items.Values;
         }
 
-        public int Get(string test)
+        public IObservableValue<int> Get(string test)
         {
             if (items.TryGetValue(test, out InventoryItem item))
             {
-                return item.Amount.Value;
+                return item.Amount;
             }
-            return 0;
+            return null;
         }
 
         public void Save()

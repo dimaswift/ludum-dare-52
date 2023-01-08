@@ -3,16 +3,30 @@ using ECF.Behaviours;
 using ECF.Behaviours.Systems;
 using ECF.Domain;
 using NUnit.Framework;
+using UnityEngine;
 
 public class SimulationTests
 {
     [Test]
     public void SimulationTestPasses()
     {
-        var items = new HashSet<MockSimulated>();
+        var items = new HashSet<ISimulated>();
         var simulation = new Simulation();
-        simulation.OnRemoved += s => { items.Remove(s as MockSimulated); };
-        simulation.OnAdded += s => { items.Add(s as MockSimulated); };
+        simulation.OnRemoved += s =>
+        {
+            if (s is MockSimulated)
+            {
+                items.Remove(s);
+            }
+           
+        };
+        simulation.OnAdded += s =>
+        {
+            if (s is MockSimulated)
+            {
+                items.Add(s);
+            }
+        };
         var delta = 10;
         simulation.Tick(delta);
         Assert.AreEqual(delta, simulation.Time.Value);

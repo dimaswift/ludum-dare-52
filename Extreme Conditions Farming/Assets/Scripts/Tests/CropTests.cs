@@ -27,7 +27,7 @@ public class CropTests
         
         Assert.AreEqual(BedStatus.Empty, currentStatus);
         
-        var planted = bed.Plant(template, out _);
+        var planted = bed.Plant(template, out _, out _);
         
         Assert.IsFalse(planted);
         
@@ -40,7 +40,7 @@ public class CropTests
         
         simulation.Inventory.Add(template.SeedId, 1);
         
-        planted = bed.Plant(template, out _);
+        planted = bed.Plant(template, out _, out _);
 
         Assert.IsTrue(planted);
         

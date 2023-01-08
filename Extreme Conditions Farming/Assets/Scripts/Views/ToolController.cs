@@ -7,12 +7,9 @@ namespace ECF.Views
     {
         public event Action OnToolChanged; 
         public Tool Current => currentTool;
-        public Tool[] Tools => tools;
+        public Tool[] Tools { get; private set; }
         
         private Tool currentTool;
-      
-
-        [SerializeField] private Tool[] tools;
 
         private Camera cam;
 
@@ -22,10 +19,20 @@ namespace ECF.Views
         
         private void Awake()
         {
+            Game.Instance.OnNewSimulationCreated += OnNewSimulationCreated;
+            Tools = GetComponentsInChildren<Tool>();
             cam = Camera.main;
-            foreach (Tool tool in tools)
+            foreach (Tool tool in Tools)
             {
                 tool.gameObject.SetActive(false);
+            }
+        }
+
+        private void OnNewSimulationCreated()
+        {
+            foreach (Tool tool in Tools)
+            {
+                tool.Init(Game.Instance.Simulation);
             }
         }
 

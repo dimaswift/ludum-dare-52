@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ECF.Domain;
+using ECF.Domain.Common;
 
 namespace ECF.Behaviours.Systems
 {
@@ -11,6 +12,7 @@ namespace ECF.Behaviours.Systems
         void Add(string id, int amount);
         bool Use(string id, int amount);
         IEnumerable<InventoryItem> GetItems();
-        int Get(string id);
+        IObservableValue<int> Get(string id);
+        void Save();
     }
 }
