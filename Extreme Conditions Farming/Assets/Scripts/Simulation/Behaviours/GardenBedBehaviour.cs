@@ -138,7 +138,7 @@ namespace ECF.Behaviours.Behaviours
         {
             data.Crop = crop;
             template = simulation.CropTemplateFactory.Get(crop.Id);
-            Status.Value = crop.Phase.IsHarvestable() ? BedStatus.Harvestable : BedStatus.Planted;
+            Status.Value = BedStatus.Planted;
             nextPhaseProgress = template.PhaseStats.Durations[data.Crop.Phase];
             Phase.Value = data.Crop.Phase;
             ShapeLevel.Value--;
@@ -196,7 +196,7 @@ namespace ECF.Behaviours.Behaviours
                 return false;
             }
 
-            if (!data.Crop.Phase.IsHarvestable())
+            if (!Phase.Value.IsHarvestable())
             {
                 return false;
             }
@@ -209,7 +209,8 @@ namespace ECF.Behaviours.Behaviours
                 Phase = Phase.Value
             };
             data.Crop = null;
-            Status.Value = BedStatus.Harvested;
+            Status.Value = BedStatus.Empty;
+            Phase.Value = CropPhase.Seed;
             nextPhaseProgress = 0;
             ShapeLevel.Value = 0;
             return true;

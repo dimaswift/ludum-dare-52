@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2eb94bf6e9ba41db8b07bea327ffd13b, type: 3}
   m_Name: Tomato
   m_EditorClassIdentifier: 
+  prefab: {fileID: 7348146829501328492, guid: fa5cc664acb6cc544be6db31d138ae40, type: 3}
   displayName: Tomato
   growthRate: 10
   waterConsumption: 10

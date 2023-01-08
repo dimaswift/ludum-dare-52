@@ -10,18 +10,13 @@ namespace ECF.Views
         public Tool[] Tools { get; private set; }
         
         private Tool currentTool;
-
-        private Camera cam;
-
-        private Plane plane = new (Vector3.up, Vector3.zero);
-
+        
         private float noTargetTime;
         
         private void Awake()
         {
             Game.Instance.OnNewSimulationCreated += OnNewSimulationCreated;
             Tools = GetComponentsInChildren<Tool>();
-            cam = Camera.main;
             foreach (Tool tool in Tools)
             {
                 tool.gameObject.SetActive(false);
@@ -69,18 +64,6 @@ namespace ECF.Views
             }
 
             currentTool.Process();
-            
-            MoveTool(cam.ScreenPointToRay(Input.mousePosition));
-        }
-
-        
-        void MoveTool(Ray ray)
-        {
-            plane.Raycast(ray, out var distance);
-
-            var pos = ray.GetPoint(distance);
-
-            currentTool.transform.position = pos;
         }
     }
 }

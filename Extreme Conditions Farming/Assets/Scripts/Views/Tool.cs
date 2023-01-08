@@ -7,6 +7,7 @@ namespace ECF.Views
 {
     public class Tool : MonoBehaviour
     {
+        
         public IToolTarget CurrentTarget => currentTarget;
 
         [SerializeField] private ParticleSystem effect;
@@ -24,8 +25,10 @@ namespace ECF.Views
         private readonly RaycastHit[] raycastBuffer = new RaycastHit[10];
 
         private float noTargetTime;
-
+        
+        private bool isActive;
         private Camera cam;
+        private bool isAnimating;
 
         public virtual void Init(ISimulation simulation)
         {
@@ -47,20 +50,16 @@ namespace ECF.Views
             }
             if (currentTarget == null || (!currentTarget.CanUseTool(this))) return;
             animator.SetBool(Active, true);
+            isActive = true;
         }
 
         public virtual void Stop()
         {
             RemoveTarget();
             animator.SetBool(Active, false);
+            isActive = false;
         }
-
-        private void FixedUpdate()
-        {
-            var ray = cam.ScreenPointToRay(Input.mousePosition);
-            FindTarget(ray);
-        }
-
+        
         public void SetEffectMaterial(Material material)
         {
             effect.GetComponent<Renderer>().sharedMaterial = material;
@@ -93,36 +92,42 @@ namespace ECF.Views
 
             return null;
         }
-        
-        private void FindTarget(Ray ray)
+
+        private void Move(Ray ray, IToolTarget hoveringOverTarget)
         {
-            var target = GetRaycastTarget(ray);
-            if (target == null)
+            float y = 0;
+
+            if (hoveringOverTarget != null)
             {
-                noTargetTime += Time.deltaTime;
-                if (noTargetTime > 0.1f)
-                {
-                    Stop();
-                }
-                return;
+                y = hoveringOverTarget.ToolHeight;
             }
 
-            if (target.CanUseTool(this))
+            var plane = new Plane(Vector3.up, new Vector3(0, y, 0));
+            
+            plane.Raycast(ray, out var distance);
+
+            var pos = ray.GetPoint(distance);
+
+            if (isAnimating && currentTarget != null)
             {
-                currentTarget = target;
-                if (Input.GetMouseButton(0))
-                {
-                    Activate();
-                }
+                var targetPos = currentTarget.Position;
+                pos = new Vector3(targetPos.x, 0, targetPos.z);
             }
+            
+            transform.position = Vector3.Lerp(transform.position, pos, Time.deltaTime * 20);
         }
         
         public virtual void Process()
         {
             var ray = cam.ScreenPointToRay(Input.mousePosition);
+            
             var target = GetRaycastTarget(ray);
+
+            Move(ray, target);
+            
             if (target == null)
             {
+                RemoveTarget();
                 return;
             }
 
@@ -131,17 +136,37 @@ namespace ECF.Views
                 if (!currentTarget.CanUseTool(this))
                 {
                     Stop();
-                    return;
                 }
+                return;
             }
+            
+            RemoveTarget();
             
             if (target.CanUseTool(this))
             {
                 currentTarget = target;
                 currentTarget.OnHoverBegan(this);
+                if (Input.GetMouseButton(0))
+                {
+                    Activate();
+                }
+            }
+            else
+            {
+                Stop();
             }
         }
-        
+
+        public void OnAnimationStarted()
+        {
+            isAnimating = true;
+        }
+
+        public void OnAnimationFinished()
+        {
+            isAnimating = false;
+        }
+
         public void Perform()
         {
             if (currentTarget == null)

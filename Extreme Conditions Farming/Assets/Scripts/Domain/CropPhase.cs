@@ -17,9 +17,7 @@
     {
         Locked = 0,
         Empty = 1,
-        Planted = 2,
-        Harvestable = 3,
-        Harvested = 4
+        Planted = 2
     }
 
     public enum Genetics

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using ECF.Behaviours;
 using ECF.Behaviours.Behaviours;
 using ECF.Domain;
 using ECF.Domain.Common;
@@ -19,7 +20,7 @@ namespace ECF.Views
         [SerializeField] private Transform fullEffect;
         [SerializeField] private AudioClip fullSound;
         [SerializeField] private float maxWaterLevel = 10;
-        
+        public Vector3 Position => transform.position;
         private AudioSource audioSource;
         
         private readonly HashSet<ToolType> supportedTools = new ()
@@ -34,13 +35,13 @@ namespace ECF.Views
         private Material fillMaterial;
         private Material finishMaterial;
         private Material soilMaterial;
-        private float lastToolUseTime;
         private float prevProgress;
         private static readonly int ColorProp = Shader.PropertyToID("_BaseColor");
         private static readonly int EmissionColorProp = Shader.PropertyToID("_EmissionColor");
 
         private float currentWaterLevelNormalized;
         private float targetWaterLevelNormalized;
+        private CropView currentCrop;
         
         public void SetFormState(int amount)
         {
@@ -58,10 +59,10 @@ namespace ECF.Views
             selectedIndicator.SetActive(false);
             hoverIndicator.SetActive(false);
             fillMaterial = fullEffect.GetComponentInChildren<MeshRenderer>().material;
-            soilMaterial = formStates[0].GetComponentInChildren<MeshRenderer>().material;
+            soilMaterial = Instantiate(formStates[0].GetComponentInChildren<MeshRenderer>().sharedMaterial);
             foreach (GameObject state in formStates)
             {
-                state.GetComponentInChildren<MeshRenderer>().material = soilMaterial;
+                state.GetComponentInChildren<MeshRenderer>().sharedMaterial = soilMaterial;
             }
             foreach (Transform fill in fills)
             {
@@ -89,7 +90,7 @@ namespace ECF.Views
             this.behaviour.WaterLevel.Changed += WaterLevelOnChanged;
             StatusOnChanged(behaviour.Status.Value);
             WaterLevelOnChanged(this.behaviour.WaterLevel.Value);
-            targetWaterLevelNormalized = currentWaterLevelNormalized;
+            currentWaterLevelNormalized = targetWaterLevelNormalized;
             if (this.behaviour.Data.Crop != null)
             {
                 PlaceCrop(this.behaviour.Data.Crop);
@@ -195,7 +196,10 @@ namespace ECF.Views
                 case ToolType.WateringCan:
                     return behaviour.WaterLevel.Value < 10;
                 case ToolType.SeedBag:
-                    return behaviour.Status.Value == BedStatus.Empty;
+                    var bag = tool as SeedBag;
+                    return behaviour.Status.Value == BedStatus.Empty && bag.Amount.Value > 0;
+                case ToolType.Shovel:
+                    return behaviour.Status.Value == BedStatus.Planted && behaviour.Phase.Value.IsHarvestable();
             }
             
             return supportedTools.Contains(tool.type);
@@ -228,11 +232,20 @@ namespace ECF.Views
                 .GetComponent<CropView>();
             cropObject.transform.SetParent(transform);
             cropObject.SetUp(crop, behaviour.Phase);
+            currentCrop = cropObject;
+        }
+
+        private void CollectCrop()
+        {
+            if (currentCrop != null)
+            {
+                Destroy(currentCrop.gameObject);
+                currentCrop = null;
+            }
         }
 
         public void UseTool(Tool tool)
         {
-            lastToolUseTime = Time.time;
             switch (tool.type)
             {
                 case ToolType.Hoe:
@@ -258,7 +271,28 @@ namespace ECF.Views
                         PlaceCrop(crop);
                     }
                     break;
+                case ToolType.Shovel:
+                    if (behaviour.TryHarvest(out var harvest))
+                    {
+                        CollectCrop();
+                    }
+                    break;
             }
         }
+
+        public float ToolHeight
+        {
+            get
+            {
+                if (currentCrop != null)
+                {
+                    return currentCrop.height;
+                }
+
+                return 0;
+            }
+        }
+
+       
     }
 }

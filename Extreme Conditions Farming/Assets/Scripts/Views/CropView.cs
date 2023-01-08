@@ -8,6 +8,8 @@ namespace ECF.Views
 {
     public class CropView : MonoBehaviour
     {
+        public float height;
+        
         private ObservableValue<CropPhase> phase;
         private CropPhase? prevPhase;
         private Crop crop;
