@@ -8,6 +8,7 @@ namespace ECF.Behaviours
 {
     public interface ISimulation
     {
+        event Action OnGameOver;
         ObservableValue<int> Time { get; }
         void Tick(int delta);
         void Add(ISimulated simulated);

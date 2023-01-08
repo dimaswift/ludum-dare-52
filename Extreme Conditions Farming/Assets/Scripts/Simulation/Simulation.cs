@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using ECF.Behaviours.Systems;
 using ECF.Domain;
 using ECF.Domain.Common;
+using UnityEngine;
 using Random = System.Random;
 
 namespace ECF.Behaviours
 {
     public class Simulation : ISimulation
     {
+        public event Action OnGameOver;
         public SimulationState State => state;
         public ICropTemplateFactory CropTemplateFactory { get; }
         public IInventorySystem Inventory { get; }
+        public ObservableValue<int> Hunger { get; } = new(0);
         public event Action<ISimulated> OnAdded;
         public event Action<ISimulated> OnRemoved;
         private readonly HashSet<ISimulated> simulatedObjects = new();
@@ -49,11 +52,18 @@ namespace ECF.Behaviours
             {
                 state = new SimulationState()
                 {
-                    RandomSeed = 0,
+                    RandomSeed = new Random().Next(0, int.MaxValue),
                     Time = 0,
                     Inventory = new InventorySystemData()
                     {
                         Items = new List<InventoryItemData>()
+                        {
+                            new ()
+                            {
+                                Amount = 0,
+                                Id = InventoryItems.Coins
+                            }
+                        }
                     },
                     CropStorage = new CropStorageData()
                     {
@@ -63,6 +73,10 @@ namespace ECF.Behaviours
                     {
                         Beds = new List<GardenBed>()
                     },
+                    Family = new FamilySystemData()
+                    {
+                        MembersAmount = 2
+                    }
                 };
 
                 for (int i = 0; i < 16; i++)
@@ -74,7 +88,6 @@ namespace ECF.Behaviours
                         Crop = null,
                     });
                 }
-                
             }
             this.state = state;
             Time.Value = this.state.Time;
@@ -87,8 +100,16 @@ namespace ECF.Behaviours
         {
             AddSystem<ICropStorage>(new CropStorage(this));
             AddSystem<IGardenBedSystem>(new GardenBedSystem(this));
+            var familySystem = new Family(state.Family);
+            familySystem.Hunger.Changed += hunger =>
+            {
+                if (hunger >= familySystem.DeadlyHungerLevel)
+                {
+                    OnGameOver?.Invoke();
+                }
+            };
+            AddSystem<IFamilySystem>(familySystem);
         }
-
         public ObservableValue<int> Time { get; } = new(0);
 
         private void ProcessSpawned()
@@ -139,6 +160,7 @@ namespace ECF.Behaviours
                 system.Value.OnTick(Time.Value, delta);
             }
         }
+        
         
         public void Tick(int delta)
         {

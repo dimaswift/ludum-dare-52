@@ -4,7 +4,6 @@ using ECF.Domain;
 using ECF.Domain.Common;
 using ECF.Behaviours.Systems;
 using UnityEngine;
-using Resources = ECF.Domain.Resources;
 
 namespace ECF.Behaviours.Behaviours
 {
@@ -134,7 +133,7 @@ namespace ECF.Behaviours.Behaviours
                 return false;
             }
             
-            if (!simulation.Inventory.Use(Resources.Coins, data.UnlockPrice))
+            if (!simulation.Inventory.Use(InventoryItems.Coins, data.UnlockPrice))
             {
                 return false;
             }

@@ -13,7 +13,8 @@ namespace ECF.Behaviours.Systems
                 SellPrices = new(),
                 Durations = new(),
                 WaterConsumption = new(),
-                SeedConversionRate = new()
+                SeedConversionRate = new(),
+                NutritionRate = new ()
             }
         };
 
@@ -41,6 +42,11 @@ namespace ECF.Behaviours.Systems
                 if (!template.PhaseStats.SeedConversionRate.ContainsKey(phase))
                 {
                     template.PhaseStats.SeedConversionRate[phase] = 1;
+                }
+
+                if (!template.PhaseStats.NutritionRate.ContainsKey(phase))
+                {
+                    template.PhaseStats.NutritionRate[phase] = 1;
                 }
             }
             

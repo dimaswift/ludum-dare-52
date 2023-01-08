@@ -38,34 +38,48 @@ namespace ECF.Behaviours.Systems
             return crops.Count < Capacity.Value;
         }
         
-        public bool Sell(Crop crop, out string error)
+        public bool Sell(Crop crop, out int revenue)
         {
-            error = null;
+            revenue = 0;
             if (Remove(crop))
             {
                 var template = simulation.CropTemplateFactory.Get(crop.Id);
-                simulation.Inventory.Add(Resources.Coins, template.PhaseStats.SellPrices[crop.Phase]);
+                revenue = template.PhaseStats.SellPrices[crop.Phase];
+                simulation.Inventory.Add(InventoryItems.Coins, revenue);
                 return true;
             }
-            error = "Crop not found";
             return false;
         }
 
-        public bool ConvertToSeeds(Crop crop, out string error)
+        public bool ConvertToSeeds(Crop crop, out int seeds)
         {
-            error = null;
-            if (!CanConvertToSeeds(crop.Phase))
+            seeds = 0;
+            if (!crop.Phase.CanConvertToSeeds())
             {
-                error = "Crop is not mature";
                 return false;
             }
             if (!Remove(crop))
             {
-                error = "Crop not found";
                 return false;
             }
             var template = simulation.CropTemplateFactory.Get(crop.Id);
-            simulation.Inventory.Add(template.SeedId, template.PhaseStats.SeedConversionRate[crop.Phase]);
+            seeds = template.PhaseStats.SeedConversionRate[crop.Phase];
+            simulation.Inventory.Add(template.SeedId, seeds);
+            return true;
+        }
+
+        public bool FeedFamily(Crop crop, out int calories)
+        {
+            calories = 0;
+            if (!Remove(crop))
+            {
+                return false;
+            }
+
+            var template = simulation.CropTemplateFactory.Get(crop.Id);
+            calories = template.PhaseStats.NutritionRate[crop.Phase];
+            var family = simulation.GetSystem<IFamilySystem>();
+            family.Feed(calories);
             return true;
         }
 
@@ -73,21 +87,7 @@ namespace ECF.Behaviours.Systems
         {
             return crops;
         }
-
-
-        private bool CanConvertToSeeds(CropPhase phase)
-        {
-            switch (phase)
-            {
-                case CropPhase.Ripe:
-                case CropPhase.Overripe:
-                case CropPhase.Rotten:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
+        
         public void Add(Crop crop)
         {
             crops.Add(crop);

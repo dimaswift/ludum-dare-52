@@ -1,4 +1,5 @@
 ﻿using System;
+using ECF.Domain;
 using ECF.Domain.Game;
 using TMPro;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace ECF.Views.UI
     {
         [SerializeField] private ToolButton toolButton;
         [SerializeField] private TextMeshProUGUI tickText;
-     
+        [SerializeField] private TextMeshProUGUI coinsText;
         private void Start()
         {
             toolButton.gameObject.SetActive(false);
@@ -29,8 +30,16 @@ namespace ECF.Views.UI
         private void OnNewSimulationCreated()
         {
             Game.Instance.Simulation.Time.Changed += OnTimeChanged;
+            var coins = Game.Instance.Simulation.Inventory.Get(InventoryItems.Coins);
+            coins.Changed += OnCoinsChanged;
+            OnCoinsChanged(coins.Value);
         }
 
+        private void OnCoinsChanged(int coins)
+        {
+            coinsText.text = coins.ToString();
+        }
+        
         private void OnPhaseChanged(GamePhase phase)
         {
             gameObject.SetActive(phase == GamePhase.Playing);
@@ -44,9 +53,17 @@ namespace ECF.Views.UI
             }
         }
 
+        private string GetDuration(int ticks)
+        {
+            var span = TimeSpan.FromHours(ticks);
+            if (span.Days > 0)
+                return $"{span.Days}d {span.Hours}h";
+            return $"{span.Hours}h";
+        }
+
         private void OnTimeChanged(int time)
         {
-            tickText.text = time.ToString();
+            tickText.text = GetDuration(time);
         }
     }
 }

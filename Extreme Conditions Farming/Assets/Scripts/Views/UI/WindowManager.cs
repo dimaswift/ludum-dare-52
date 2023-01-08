@@ -25,10 +25,10 @@ namespace ECF.Views.UI
                 win.gameObject.SetActive(false);
                 win.Init();
                 var rect = win.GetComponent<RectTransform>();
-                rect.anchorMax = new Vector2(1,1);
-                rect.anchorMin = new Vector2();
+         
+                rect.sizeDelta = new Vector2();
                 rect.anchoredPosition = new Vector2();
-                rect.rect.Set(0, 0, 0, 0);
+                
                 windows.Add(typeof(T), win);
             }
 

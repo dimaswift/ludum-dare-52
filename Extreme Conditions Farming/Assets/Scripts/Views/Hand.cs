@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using ECF.Behaviours;
+using UnityEditor;
 using UnityEngine;
 
 namespace ECF.Views
@@ -53,6 +54,35 @@ namespace ECF.Views
                 return slot.Crop != null;
             }
 
+            if (target is Shop)
+            {
+                return pickedUpResult is CropView;
+            }
+
+            if (target is SeedConverter)
+            {
+                if (pickedUpResult is CropView crop)
+                {
+                    if (crop.Crop.Phase.CanConvertToSeeds())
+                    {
+                        return true;
+                    }
+                }
+            
+            }
+
+            if (target is FamilyHome)
+            {
+                if (pickedUpResult is CropView crop)
+                {
+                    if (crop.Crop.Phase.CanEat())
+                    {
+                        return true;
+                    }
+                }
+
+            }
+            
             return false;
         }
 

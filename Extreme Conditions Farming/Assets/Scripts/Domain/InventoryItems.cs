@@ -1,6 +1,6 @@
 ﻿namespace ECF.Domain
 {
-    public static class Resources
+    public static class InventoryItems
     {
         public const string Coins = "Coins";
     }

@@ -98,7 +98,15 @@ namespace ECF.Views
                 Simulation.Inventory.Add(Simulation.CropTemplateFactory.Get("Tomato").SeedId, 3);
             }
             OnNewSimulationCreated?.Invoke();
+            Simulation.OnGameOver += OnGameOver;
             Phase.Value = GamePhase.Playing;
+        }
+
+        private void OnGameOver()
+        {
+            Phase.Value = GamePhase.GameOver;
+            WindowManager.Show<GameOverScreen>();
+            save.SimulationState = null;
         }
 
         private void Update()

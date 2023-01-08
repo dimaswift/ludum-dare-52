@@ -12,9 +12,10 @@ namespace ECF.Behaviours.Systems
         void Add(Crop crop);
         bool Remove(Crop crop);
 
-        bool Sell(Crop crop, out string error);
+        bool Sell(Crop crop, out int revenue);
 
-        bool ConvertToSeeds(Crop crop, out string error);
+        bool ConvertToSeeds(Crop crop, out int seedsAdded);
+        bool FeedFamily(Crop crop, out int calories);
         IEnumerable<Crop> GetCrops();
         event Action<Crop> OnCropAdded;
     }

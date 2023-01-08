@@ -30,11 +30,11 @@ namespace ECF.Views
 
         public override bool CanActivate(IToolTarget target)
         {
-            if (CurrentTarget is GardenBedView bed)
+            if (target is GardenBedView bed)
             {
                 return Amount.Value > 0 
                        && bed.Behaviour.Status.Value == BedStatus.Empty 
-                       && bed.Behaviour.ShapeLevel.Value >= bed.ShapesCount;
+                       && bed.Behaviour.ShapeLevel.Value >= bed.ShapesCount - 1;
             }
 
             return false;
