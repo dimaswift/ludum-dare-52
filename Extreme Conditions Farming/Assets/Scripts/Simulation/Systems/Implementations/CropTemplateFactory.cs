@@ -31,7 +31,7 @@ namespace ECF.Behaviours.Systems
         }
 
         public CropTemplate CreateLinear(string id, string name, int growthDuration, int waterConsumption,
-            int seedConversionRate, int sellPrice)
+            int seedConversionRate, int sellPrice, int nutrition)
         {
             if (templates.TryGetValue(id, out var t))
             {
@@ -43,6 +43,7 @@ namespace ECF.Behaviours.Systems
                 .WithPhaseDuration(growthDuration)
                 .WithWaterConsumption(waterConsumption)
                 .WithSeedConversionRate(seedConversionRate)
+                .WithNutrition(nutrition)
                 .WithSellPrice(sellPrice));
         }
     }

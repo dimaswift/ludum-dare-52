@@ -9,7 +9,7 @@ namespace ECF.Behaviours.Behaviours
 {
     public class GardenBedBehaviour : ISimulated, IGardenBedBehaviour
     {
-        public int MaxWaterLevel => 10;
+        public int MaxWaterLevel => 9;
         
         public GardenBed Data => data;
         public ObservableValue<CropPhase> Phase { get; } = new(0);

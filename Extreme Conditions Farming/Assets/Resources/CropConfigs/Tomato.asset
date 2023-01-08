@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefab: {fileID: 7348146829501328492, guid: fa5cc664acb6cc544be6db31d138ae40, type: 3}
   displayName: Tomato
-  growthDuration: 20
+  growthDuration: 5
   waterConsumption: 10
   seedConversionRate: 3
   sellPrice: 5
+  nutrition: 50

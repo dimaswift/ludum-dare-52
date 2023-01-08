@@ -214,7 +214,7 @@ namespace ECF.Views
 
         private void Water()
         {
-            behaviour.Water(2);
+            behaviour.Water(3);
         }
 
         private void PlaceCrop(Crop crop)

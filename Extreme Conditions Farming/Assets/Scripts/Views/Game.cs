@@ -90,12 +90,13 @@ namespace ECF.Views
                     cropConfig.Value.growthDuration, 
                     cropConfig.Value.waterConsumption,
                     cropConfig.Value.seedConversionRate, 
-                    cropConfig.Value.sellPrice);
+                    cropConfig.Value.sellPrice,
+                    cropConfig.Value.nutrition);
             }
             Simulation.CreateSystems();
             if (isNew)
             {
-                Simulation.Inventory.Add(Simulation.CropTemplateFactory.Get("Tomato").SeedId, 3);
+                Simulation.Inventory.Add(Simulation.CropTemplateFactory.Get("Tomato").SeedId, 9);
             }
             OnNewSimulationCreated?.Invoke();
             Simulation.OnGameOver += OnGameOver;

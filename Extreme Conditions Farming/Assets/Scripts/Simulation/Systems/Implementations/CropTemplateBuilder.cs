@@ -104,6 +104,16 @@ namespace ECF.Behaviours.Systems
             }         
             return this;
         }
+
+        public CropTemplateBuilder WithNutrition(int rate)
+        {
+            foreach (CropPhase phase in Phases)
+            {
+                template.PhaseStats.NutritionRate[phase] = rate;
+            }
+
+            return this;
+        }
         
         public CropTemplateBuilder WithSellPrice(CropPhase phase, int price)
         {
