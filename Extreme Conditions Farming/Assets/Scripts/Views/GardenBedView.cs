@@ -197,7 +197,7 @@ namespace ECF.Views
                     return behaviour.WaterLevel.Value < 10;
                 case ToolType.SeedBag:
                     var bag = tool as SeedBag;
-                    return behaviour.Status.Value == BedStatus.Empty && bag.Amount.Value > 0;
+                    return behaviour.ShapeLevel.Value == formStates.Length - 1 && behaviour.Status.Value == BedStatus.Empty && bag.Amount.Value > 0;
                 case ToolType.Shovel:
                     return behaviour.Status.Value == BedStatus.Planted && behaviour.Phase.Value.IsHarvestable();
             }

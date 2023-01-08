@@ -25,8 +25,6 @@ namespace ECF.Views
         private readonly RaycastHit[] raycastBuffer = new RaycastHit[10];
 
         private float noTargetTime;
-        
-        private bool isActive;
         private Camera cam;
         private bool isAnimating;
 
@@ -42,6 +40,11 @@ namespace ECF.Views
             audioSource = GetComponent<AudioSource>();
         }
 
+        private void OnEnable()
+        {
+            Move(cam.ScreenPointToRay(Input.mousePosition), null, false);
+        }
+
         public virtual void Activate()
         {
             if (!CanActivate())
@@ -50,14 +53,12 @@ namespace ECF.Views
             }
             if (currentTarget == null || (!currentTarget.CanUseTool(this))) return;
             animator.SetBool(Active, true);
-            isActive = true;
         }
 
         public virtual void Stop()
         {
             RemoveTarget();
             animator.SetBool(Active, false);
-            isActive = false;
         }
         
         public void SetEffectMaterial(Material material)
@@ -92,8 +93,9 @@ namespace ECF.Views
 
             return null;
         }
+        
 
-        private void Move(Ray ray, IToolTarget hoveringOverTarget)
+        private void Move(Ray ray, IToolTarget hoveringOverTarget, bool lerp)
         {
             float y = 0;
 
@@ -114,7 +116,7 @@ namespace ECF.Views
                 pos = new Vector3(targetPos.x, 0, targetPos.z);
             }
             
-            transform.position = Vector3.Lerp(transform.position, pos, Time.deltaTime * 20);
+            transform.position = lerp ? Vector3.Lerp(transform.position, pos, Time.deltaTime * 25) : pos;
         }
         
         public virtual void Process()
@@ -123,7 +125,7 @@ namespace ECF.Views
             
             var target = GetRaycastTarget(ray);
 
-            Move(ray, target);
+            Move(ray, target, true);
             
             if (target == null)
             {
