@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace ECF.Views
 {
-
     public class ToolController : MonoBehaviour
     {
         public event Action OnToolChanged; 
@@ -11,7 +10,7 @@ namespace ECF.Views
         public Tool[] Tools => tools;
         
         private Tool currentTool;
-        private readonly RaycastHit[] raycastBuffer = new RaycastHit[10];
+      
 
         [SerializeField] private Tool[] tools;
 
@@ -19,10 +18,15 @@ namespace ECF.Views
 
         private Plane plane = new (Vector3.up, Vector3.zero);
 
+        private float noTargetTime;
+        
         private void Awake()
         {
             cam = Camera.main;
-            currentTool = tools[0];
+            foreach (Tool tool in tools)
+            {
+                tool.gameObject.SetActive(false);
+            }
         }
 
         public void SetActiveTool(Tool tool)
@@ -46,40 +50,23 @@ namespace ECF.Views
             {
                 return;
             }
+            
             if (Input.GetMouseButtonDown(0))
             {
                 currentTool.Activate();
             }
+            
             if (Input.GetMouseButtonUp(0))
             {
                 currentTool.Stop();
             }
+
+            currentTool.Process();
+            
+            MoveTool(cam.ScreenPointToRay(Input.mousePosition));
         }
 
-        private void FindTarget(Ray ray)
-        {
-            var hits = Physics.RaycastNonAlloc(ray, raycastBuffer, 100f);
-            for (int i = 0; i < hits; i++)
-            {
-                var hit = raycastBuffer[i];
-                var target = hit.collider.GetComponent<IToolTarget>();
-                if (target == null)
-                {
-                    continue;
-                }
-                if (currentTool.TrySetTarget(target))
-                {
-                    if (Input.GetMouseButton(0))
-                    {
-                        currentTool.Activate();
-                    }
-                    return;
-                }
-            }
-
-            currentTool.Stop();
-        }
-
+        
         void MoveTool(Ray ray)
         {
             plane.Raycast(ray, out var distance);
@@ -87,19 +74,6 @@ namespace ECF.Views
             var pos = ray.GetPoint(distance);
 
             currentTool.transform.position = pos;
-        }
-        
-        void FixedUpdate()
-        {
-            if (currentTool == null)
-            {
-                return;
-            }
-            var ray = cam.ScreenPointToRay(Input.mousePosition);
-
-            MoveTool(ray);
-
-            FindTarget(ray);
         }
     }
 }

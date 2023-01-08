@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ECF.Domain;
 using ECF.Domain.Common;
 using ECF.Behaviours.Systems;
@@ -17,6 +18,9 @@ namespace ECF.Behaviours.Behaviours
         private int nextPhaseProgress;
         private readonly ISimulation simulation;
         private readonly GardenBed data;
+
+        private int waterDepletionCounter;
+        
 
         public GardenBedBehaviour(ISimulation simulation, GardenBed data)
         {
@@ -50,6 +54,14 @@ namespace ECF.Behaviours.Behaviours
 
         public void OnTick(int time, int delta)
         {
+            waterDepletionCounter += delta;
+
+            if (waterDepletionCounter > 30)
+            {
+                waterDepletionCounter = 0;
+                WaterLevel.Value = Math.Max(0, WaterLevel.Value - 1);
+            }
+            
             if (data == null || data.Crop == null || Status.Value != BedStatus.Planted)
             {
                 return;
@@ -122,11 +134,18 @@ namespace ECF.Behaviours.Behaviours
             Status.Value = crop.Phase.IsHarvestable() ? BedStatus.Harvestable : BedStatus.Planted;
             nextPhaseProgress = template.PhaseStats.Durations[data.Crop.Phase];
             Phase.Value = data.Crop.Phase;
+            ShapeLevel.Value--;
         }
 
         public void ImproveShape()
         {
             ShapeLevel.Value++;
+        }
+
+        public void Water(int amount)
+        {
+            WaterLevel.Value += amount;
+            waterDepletionCounter = 0;
         }
         
         public bool Plant(CropTemplate template, out string error)
@@ -185,6 +204,7 @@ namespace ECF.Behaviours.Behaviours
             data.Crop = null;
             Status.Value = BedStatus.Harvested;
             nextPhaseProgress = 0;
+            ShapeLevel.Value = 0;
             return true;
         }
     }

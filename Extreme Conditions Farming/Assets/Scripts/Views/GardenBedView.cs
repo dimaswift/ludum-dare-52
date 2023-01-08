@@ -5,6 +5,7 @@ using ECF.Behaviours.Behaviours;
 using ECF.Domain;
 using ECF.Domain.Common;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ECF.Views
 {
@@ -14,7 +15,12 @@ namespace ECF.Views
         [SerializeField] private GameObject hoverIndicator;
         [SerializeField] private GameObject lockedState;
         [SerializeField] private GameObject[] formStates;
-        private AudioSource source;
+        [SerializeField] private Transform[] fills;
+        [SerializeField] private Transform fullEffect;
+        [SerializeField] private AudioClip fullSound;
+        [SerializeField] private float maxWaterLevel = 10;
+        
+        private AudioSource audioSource;
         
         private readonly HashSet<ToolType> supportedTools = new ()
         {
@@ -25,6 +31,16 @@ namespace ECF.Views
         private GardenBedBehaviour behaviour;
 
         private readonly ObservableValue<bool> selected = new(false);
+        private Material fillMaterial;
+        private Material finishMaterial;
+        private Material soilMaterial;
+        private float lastToolUseTime;
+        private float prevProgress;
+        private static readonly int ColorProp = Shader.PropertyToID("_BaseColor");
+        private static readonly int EmissionColorProp = Shader.PropertyToID("_EmissionColor");
+
+        private float currentWaterLevelNormalized;
+        private float targetWaterLevelNormalized;
         
         public void SetFormState(int amount)
         {
@@ -37,10 +53,30 @@ namespace ECF.Views
 
         private void Awake()
         {
-            source = GetComponent<AudioSource>();
+            audioSource = GetComponent<AudioSource>();
             selected.Changed += s => selectedIndicator.SetActive(s);
             selectedIndicator.SetActive(false);
             hoverIndicator.SetActive(false);
+            fillMaterial = fullEffect.GetComponentInChildren<MeshRenderer>().material;
+            soilMaterial = formStates[0].GetComponentInChildren<MeshRenderer>().material;
+            foreach (GameObject state in formStates)
+            {
+                state.GetComponentInChildren<MeshRenderer>().material = soilMaterial;
+            }
+            foreach (Transform fill in fills)
+            {
+                fill.GetComponentInChildren<MeshRenderer>().sharedMaterial = fillMaterial;
+                fill.transform.localScale = Vector3.zero;
+            }
+            finishMaterial = Instantiate(fillMaterial);
+            foreach (MeshRenderer meshRenderer in fullEffect.GetComponentsInChildren<MeshRenderer>())
+            {
+                meshRenderer.sharedMaterial = finishMaterial;
+            }
+            fillMaterial.SetColor(ColorProp, Color.clear);
+            fillMaterial.SetColor(EmissionColorProp, Color.clear);
+            finishMaterial.SetColor(ColorProp, Color.clear);
+            finishMaterial.SetColor(EmissionColorProp, Color.clear);
         }
 
         public void Init(GardenBedBehaviour behaviour)
@@ -50,7 +86,15 @@ namespace ECF.Views
             SetFormState(behaviour.Data.ShapeLevel);
             behaviour.ShapeLevel.Changed += SetFormState;
             behaviour.Status.Changed += StatusOnChanged;
+            this.behaviour.WaterLevel.Changed += WaterLevelOnChanged;
             StatusOnChanged(behaviour.Status.Value);
+            WaterLevelOnChanged(this.behaviour.WaterLevel.Value);
+            targetWaterLevelNormalized = currentWaterLevelNormalized;
+        }
+
+        private void WaterLevelOnChanged(int water)
+        {
+            UpdateSoil();
         }
 
         private void StatusOnChanged(BedStatus status)
@@ -58,6 +102,73 @@ namespace ECF.Views
             lockedState.SetActive(behaviour.Status.Value == BedStatus.Locked);
         }
 
+        private void UpdateSoil()
+        {
+            targetWaterLevelNormalized = behaviour.WaterLevel.Value / maxWaterLevel;
+        }
+        
+        private void Update()
+        {
+            currentWaterLevelNormalized = Mathf.Lerp(currentWaterLevelNormalized, targetWaterLevelNormalized, Time.deltaTime * 2);
+            soilMaterial.SetColor(ColorProp, Color.Lerp(Color.white, Color.gray, currentWaterLevelNormalized));
+            
+            float progress = 0;
+           
+            if (Game.Instance.Tools.Current != null)
+            {
+                switch (Game.Instance.Tools.Current.type)
+                {
+                    case ToolType.Hoe:
+                        progress = behaviour.ShapeLevel.Value / ((float)formStates.Length - 1);
+                        
+                        break;
+                    case ToolType.WateringCan:
+                        progress = behaviour.WaterLevel.Value / maxWaterLevel;
+   
+                        break;
+                }
+
+                foreach (Transform fill in fills)
+                {
+                    fill.transform.localScale =
+                        Vector3.Lerp(fill.transform.localScale, new Vector3(1, 1, progress), Time.deltaTime * 15);
+                }
+              
+            }
+
+            
+            
+            if (Mathf.Approximately(prevProgress, progress))
+            {
+                return;
+            }
+            
+            prevProgress = progress;
+
+            // if (Mathf.Approximately(progress, 1))
+            // {
+            //     StartCoroutine(PlayFullEffect());
+            // }
+
+            // Color color = Color.Lerp(Color.red, Color.green, progress);
+            // color.a = 1f - Mathf.Clamp((Time.time - lastToolUseTime) / 2, 0, 1);
+            // fillMaterial.SetColor(ColorProp, color);
+            // fillMaterial.SetColor(EmissionColorProp, color);
+        }
+
+        IEnumerator PlayFullEffect()
+        {
+            audioSource.PlayOneShot(fullSound);
+            float t = 0f;
+            while (t < 1f)
+            {
+                t += Time.deltaTime * 3;
+                fullEffect.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 2.0f, t);
+                finishMaterial.SetColor(ColorProp, Color.Lerp(Color.green, new Color(0,1,0,0), t));
+                finishMaterial.SetColor(EmissionColorProp, Color.Lerp(Color.green, new Color(0, 1, 0, 0), t));
+                yield return null;
+            }
+        }
 
         [Serializable]
         public class FormState
@@ -78,9 +189,7 @@ namespace ECF.Views
                 case ToolType.Hoe:
                     return behaviour.Status.Value == BedStatus.Empty && behaviour.ShapeLevel.Value < formStates.Length - 1;
                 case ToolType.WateringCan:
-                    if (behaviour.WaterLevel.Value >= 10)
-                        return false;
-                    return behaviour.Status.Value == BedStatus.Planted || behaviour.Status.Value == BedStatus.Planted;
+                    return behaviour.WaterLevel.Value < 10;
             }
             
             return supportedTools.Contains(tool.type);
@@ -103,17 +212,19 @@ namespace ECF.Views
 
         private void Water()
         {
-            behaviour.WaterLevel.Value++;
+            behaviour.Water(2);
         }
 
         public void UseTool(Tool tool)
         {
+            lastToolUseTime = Time.time;
             switch (tool.type)
             {
                 case ToolType.Hoe:
                     if (behaviour.ShapeLevel.Value < formStates.Length)
                     {
                         Plow();
+                        tool.SetEffectMaterial(soilMaterial);
                         return;
                     }
                     return;

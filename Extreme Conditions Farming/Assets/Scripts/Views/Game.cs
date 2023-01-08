@@ -55,6 +55,7 @@ namespace ECF.Views
 
         public void Init()
         {
+            Application.targetFrameRate = 144;
             StorageService = new PlayerPrefsStorage();
             save = StorageService.Load(() => new PlayerSave());
             windowManager.Show<MainMenu>();

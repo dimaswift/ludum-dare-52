@@ -1,21 +1,12 @@
-using System;
-using System.Collections.Generic;
 using ECF.Domain;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace ECF.Views
 {
-    public interface IToolTarget
-    {
-        bool CanUseTool(Tool tool);
-        void OnHoverBegan(Tool tool);
-        void OnHoverEnded();
-        void UseTool(Tool tool);
-    }
-    
     public class Tool : MonoBehaviour
     {
+        public IToolTarget CurrentTarget => currentTarget;
+
         [SerializeField] private ParticleSystem effect;
 
         public ToolType type;
@@ -28,24 +19,42 @@ namespace ECF.Views
         private static readonly int Active = Animator.StringToHash("Active");
 
         private IToolTarget currentTarget;
+        private readonly RaycastHit[] raycastBuffer = new RaycastHit[10];
+        private bool isActive;
+        private float noTargetTime;
+
+        private Camera cam;
 
         private void Awake()
         {
+            cam = Camera.main;
             animator = GetComponent<Animator>();
             audioSource = GetComponent<AudioSource>();
         }
 
-        public void Activate()
+        public virtual void Activate()
         {
-            if (currentTarget == null || !currentTarget.CanUseTool(this)) return;
-            
+            if (currentTarget == null || (!currentTarget.CanUseTool(this))) return;
             animator.SetBool(Active, true);
+            isActive = true;
         }
 
-        public void Stop()
+        public virtual void Stop()
         {
             RemoveTarget();
             animator.SetBool(Active, false);
+            isActive = false;
+        }
+
+        private void FixedUpdate()
+        {
+            var ray = cam.ScreenPointToRay(Input.mousePosition);
+            FindTarget(ray);
+        }
+
+        public void SetEffectMaterial(Material material)
+        {
+            effect.GetComponent<Renderer>().sharedMaterial = material;
         }
 
         public void RemoveTarget()
@@ -57,25 +66,69 @@ namespace ECF.Views
             }
         }
 
-        public bool TrySetTarget(IToolTarget target)
+        protected IToolTarget GetRaycastTarget(Ray ray)
         {
-            if (currentTarget == target)
+            var hits = Physics.RaycastNonAlloc(ray, raycastBuffer, 100f);
+            for (int i = 0; i < hits; i++)
             {
-                return target.CanUseTool(this);
+                var hit = raycastBuffer[i];
+                var target = hit.collider.GetComponent<IToolTarget>();
+                if (target == null)
+                {
+                    continue;
+                }
+                return target;
+            }
+
+            return null;
+        }
+        
+        private void FindTarget(Ray ray)
+        {
+            var target = GetRaycastTarget(ray);
+            if (target == null)
+            {
+                noTargetTime += Time.deltaTime;
+                if (noTargetTime > 0.1f)
+                {
+                    Stop();
+                }
+                return;
             }
 
             if (target.CanUseTool(this))
             {
-                target.OnHoverBegan(this);
-                if (currentTarget != null)
-                {
-                    currentTarget.OnHoverEnded();
-                }
                 currentTarget = target;
-                return true;
+                if (Input.GetMouseButton(0))
+                {
+                    Activate();
+                }
+            }
+        }
+        
+        public virtual void Process()
+        {
+            var ray = cam.ScreenPointToRay(Input.mousePosition);
+            var target = GetRaycastTarget(ray);
+            if (target == null)
+            {
+                return;
             }
 
-            return false;
+            if (target == currentTarget)
+            {
+                if (!currentTarget.CanUseTool(this))
+                {
+                    Stop();
+                    return;
+                }
+            }
+            
+            if (target.CanUseTool(this))
+            {
+                currentTarget = target;
+                currentTarget.OnHoverBegan(this);
+            }
         }
         
         public void Perform()
@@ -85,15 +138,9 @@ namespace ECF.Views
                 return;
             }
 
-            if (!currentTarget.CanUseTool(this))
-            {
-                Stop();
-                return;
-            }
             currentTarget.UseTool(this);
             effect.Play(false);
             audioSource.PlayOneShot(actionSounds.Random());
         }
     }
-
 }
