@@ -1,17 +1,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using ECF.Behaviours;
 using ECF.Behaviours.Behaviours;
 using ECF.Domain;
 using ECF.Domain.Common;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace ECF.Views
 {
-    public class GardenBedView : MonoBehaviour, IToolTarget
+    public class GardenBedView : MonoBehaviour, IToolTarget, IToolUseResult
     {
+        public GardenBedBehaviour Behaviour => behaviour;
+        public int ShapesCount => formStates.Length;
+        
+        
         [SerializeField] private GameObject selectedIndicator;
         [SerializeField] private GameObject hoverIndicator;
         [SerializeField] private GameObject lockedState;
@@ -19,7 +21,20 @@ namespace ECF.Views
         [SerializeField] private Transform[] fills;
         [SerializeField] private Transform fullEffect;
         [SerializeField] private AudioClip fullSound;
-    
+
+        public float ToolHeight
+        {
+            get
+            {
+                if (currentCrop != null)
+                {
+                    return currentCrop.height;
+                }
+
+                return 0;
+            }
+        }
+
         public Vector3 Position => transform.position;
         private AudioSource audioSource;
         
@@ -124,7 +139,7 @@ namespace ECF.Views
                 switch (Game.Instance.Tools.Current.type)
                 {
                     case ToolType.Hoe:
-                        progress = behaviour.ShapeLevel.Value / ((float)formStates.Length - 1);
+                        progress = behaviour.ShapeLevel.Value / ((float)ShapesCount - 1);
                         
                         break;
                     case ToolType.WateringCan:
@@ -181,30 +196,7 @@ namespace ECF.Views
             public int threshold;
             public GameObject model;
         }
-
-        public bool CanUseTool(Tool tool)
-        {
-            if (behaviour.Status.Value == BedStatus.Locked)
-            {
-                return false;
-            }
-
-            switch (tool.type)
-            {
-                case ToolType.Hoe:
-                    return behaviour.Status.Value == BedStatus.Empty && behaviour.ShapeLevel.Value < formStates.Length - 1;
-                case ToolType.WateringCan:
-                    return behaviour.WaterLevel.Value < 10;
-                case ToolType.SeedBag:
-                    var bag = tool as SeedBag;
-                    return behaviour.ShapeLevel.Value == formStates.Length - 1 && behaviour.Status.Value == BedStatus.Empty && bag.Amount.Value > 0;
-                case ToolType.Shovel:
-                    return behaviour.Status.Value == BedStatus.Planted && behaviour.Phase.Value.IsHarvestable();
-            }
-            
-            return supportedTools.Contains(tool.type);
-        }
-
+        
         public void OnHoverBegan(Tool tool)
         {
             hoverIndicator.SetActive(true);
@@ -244,7 +236,7 @@ namespace ECF.Views
             }
         }
 
-        public void UseTool(Tool tool)
+        public IToolUseResult UseTool(Tool tool)
         {
             switch (tool.type)
             {
@@ -253,45 +245,40 @@ namespace ECF.Views
                     {
                         Plow();
                         tool.SetEffectMaterial(soilMaterial);
-                        return;
+                        return this;
                     }
-                    return;
+                    return null;
                 case ToolType.WateringCan:
                     if (behaviour.WaterLevel.Value < 10)
                     {
                         Water();
-                        return;
+                        return this;
                     }
-                    break;
+
+                    return null;
                 case ToolType.SeedBag:
                     var bag = tool as SeedBag;
                     var template = Game.Instance.Simulation.CropTemplateFactory.Get(bag.templateId);
                     if (behaviour.Plant(template, out var crop, out _))
                     {
                         PlaceCrop(crop);
+                        return this;
                     }
-                    break;
+
+                    return null;
                 case ToolType.Shovel:
                     if (behaviour.TryHarvest(out var harvest))
                     {
                         CollectCrop();
+                        return this;
                     }
-                    break;
+
+                    return null;
             }
+
+            return null;
         }
 
-        public float ToolHeight
-        {
-            get
-            {
-                if (currentCrop != null)
-                {
-                    return currentCrop.height;
-                }
-
-                return 0;
-            }
-        }
 
        
     }

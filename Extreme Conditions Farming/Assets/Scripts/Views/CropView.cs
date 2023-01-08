@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ECF.Views
 {
-    public class CropView : MonoBehaviour
+    public class CropView : MonoBehaviour, IToolUseResult
     {
         public float height;
         
@@ -16,7 +16,8 @@ namespace ECF.Views
         private readonly Dictionary<CropPhase, GameObject> phases = new();
 
         private static readonly CropPhase[] AllPhases = (CropPhase[]) Enum.GetValues(typeof(CropPhase));
-        
+        public Crop Crop { get; private set; }
+
         private void Awake()
         {
             foreach (CropPhase cropPhase in AllPhases)
@@ -33,6 +34,7 @@ namespace ECF.Views
 
         public void SetUp(Crop crop, ObservableValue<CropPhase> phase)
         {
+            Crop = crop;
             this.phase = phase;
             phase.Changed += OnPhaseChanged;
             foreach (var o in phases)

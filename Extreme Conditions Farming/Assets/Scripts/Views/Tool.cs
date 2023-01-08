@@ -7,7 +7,6 @@ namespace ECF.Views
 {
     public class Tool : MonoBehaviour
     {
-        
         public IToolTarget CurrentTarget => currentTarget;
 
         [SerializeField] private ParticleSystem effect;
@@ -17,9 +16,9 @@ namespace ECF.Views
         public AudioClip[] actionSounds;
         public string displayName;
 
-        private Animator animator;
+        protected Animator Animator { get; private set; }
         private AudioSource audioSource;
-        private static readonly int Active = Animator.StringToHash("Active");
+        protected static readonly int Active = Animator.StringToHash("Active");
 
         private IToolTarget currentTarget;
         private readonly RaycastHit[] raycastBuffer = new RaycastHit[10];
@@ -36,7 +35,7 @@ namespace ECF.Views
         private void Awake()
         {
             cam = Camera.main;
-            animator = GetComponent<Animator>();
+            Animator = GetComponent<Animator>();
             audioSource = GetComponent<AudioSource>();
         }
 
@@ -47,18 +46,13 @@ namespace ECF.Views
 
         public virtual void Activate()
         {
-            if (!CanActivate())
-            {
-                return;
-            }
-            if (currentTarget == null || (!currentTarget.CanUseTool(this))) return;
-            animator.SetBool(Active, true);
+            Animator.SetBool(Active, true);
         }
 
         public virtual void Stop()
         {
             RemoveTarget();
-            animator.SetBool(Active, false);
+            Animator.SetBool(Active, false);
         }
         
         public void SetEffectMaterial(Material material)
@@ -75,7 +69,10 @@ namespace ECF.Views
             }
         }
 
-        protected virtual bool CanActivate() => true;
+        public virtual bool CanActivate(IToolTarget target)
+        {
+            return true;
+        }
 
         protected IToolTarget GetRaycastTarget(Ray ray)
         {
@@ -135,7 +132,7 @@ namespace ECF.Views
 
             if (target == currentTarget)
             {
-                if (!currentTarget.CanUseTool(this))
+                if (!CanActivate(target))
                 {
                     Stop();
                 }
@@ -144,7 +141,7 @@ namespace ECF.Views
             
             RemoveTarget();
             
-            if (target.CanUseTool(this))
+            if (CanActivate(target))
             {
                 currentTarget = target;
                 currentTarget.OnHoverBegan(this);
@@ -169,6 +166,8 @@ namespace ECF.Views
             isAnimating = false;
         }
 
+        protected virtual void OnToolUsed(IToolUseResult result) {}
+        
         public void Perform()
         {
             if (currentTarget == null)
@@ -176,7 +175,11 @@ namespace ECF.Views
                 return;
             }
 
-            currentTarget.UseTool(this);
+            var result = currentTarget.UseTool(this);
+            if (result != null)
+            {
+                OnToolUsed(result);
+            }
             effect.Play(false);
             audioSource.PlayOneShot(actionSounds.Random());
         }

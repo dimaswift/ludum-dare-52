@@ -55,7 +55,10 @@ namespace ECF.Views
             
             if (Input.GetMouseButtonDown(0))
             {
-                currentTool.Activate();
+                if (currentTool.CanActivate(currentTool.CurrentTarget))
+                {
+                    currentTool.Activate();
+                }
             }
             
             if (Input.GetMouseButtonUp(0))

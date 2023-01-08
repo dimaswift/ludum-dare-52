@@ -28,19 +28,16 @@ namespace ECF.Views
             UpdateSeedCount(Amount.Value);
         }
 
-        protected override bool CanActivate()
+        public override bool CanActivate(IToolTarget target)
         {
-            if (CurrentTarget == null)
+            if (CurrentTarget is GardenBedView bed)
             {
-                return false;
+                return Amount.Value > 0 
+                       && bed.Behaviour.Status.Value == BedStatus.Empty 
+                       && bed.Behaviour.ShapeLevel.Value >= bed.ShapesCount;
             }
 
-            if (CurrentTarget is GardenBedView)
-            {
-                return Amount.Value > 0;
-            }
-
-            return true;
+            return false;
         }
 
         private void SetSeedPosition(int seedCount)

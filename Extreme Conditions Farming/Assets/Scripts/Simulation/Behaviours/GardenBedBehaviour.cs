@@ -11,6 +11,7 @@ namespace ECF.Behaviours.Behaviours
     public class GardenBedBehaviour : ISimulated, IGardenBedBehaviour
     {
         public int MaxWaterLevel => 10;
+        
         public GardenBed Data => data;
         public ObservableValue<CropPhase> Phase { get; } = new(0);
         public ObservableValue<BedStatus> Status { get; } = new(0);

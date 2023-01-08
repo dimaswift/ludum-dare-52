@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 633489093613795721}
   - component: {fileID: 2729601167272092214}
-  - component: {fileID: 7926330581016425709}
   - component: {fileID: 105537758674710399}
+  - component: {fileID: 1733293370665892031}
   m_Layer: 0
   m_Name: Shovel
   m_TagString: Untagged
@@ -56,24 +56,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
---- !u!114 &7926330581016425709
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 61242195730604118}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02f7cfd4ffc37f248a740bd2d9d91b9d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  effect: {fileID: 4825558904636702354}
-  type: 3
-  icon: {fileID: 21300000, guid: 916e31874d66ed640a0bbe3fe6fc1891, type: 3}
-  actionSounds:
-  - {fileID: 8300000, guid: 5d544d7f1a525bc45bd0ebb125963bfc, type: 3}
-  displayName: Shovel
 --- !u!82 &105537758674710399
 AudioSource:
   m_ObjectHideFlags: 0
@@ -170,6 +152,24 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1733293370665892031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 61242195730604118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5bf65a1bda74369a419314407408062, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  effect: {fileID: 4825558904636702354}
+  type: 3
+  icon: {fileID: 21300000, guid: 916e31874d66ed640a0bbe3fe6fc1891, type: 3}
+  actionSounds:
+  - {fileID: 8300000, guid: 5d544d7f1a525bc45bd0ebb125963bfc, type: 3}
+  displayName: Shovel
 --- !u!1 &1420775411011138012
 GameObject:
   m_ObjectHideFlags: 0

@@ -43,26 +43,34 @@ namespace ECF.Views
             {
                 return;
             }
-            Destroy(cropView.gameObject);
             phase = null;
             cropView = null;
             Crop = null;
         }
 
-        public bool CanUseTool(Tool tool)
-        {
-            if (tool.type != ToolType.Hand && tool.type != ToolType.SeedBag)
-            {
-                return false;
-            }
-            
-            if (Crop == null)
-            {
-                return false;
-            }
-            
-            return true;
-        }
+        // public bool CanUseTool(Tool tool)
+        // {
+        //     if (tool.type != ToolType.Hand && tool.type != ToolType.SeedBag)
+        //     {
+        //         return false;
+        //     }
+        //     
+        //     
+        //     if (Crop == null)
+        //     {
+        //         if (tool is Hand hand)
+        //         {
+        //             if (hand.PickedUpResult != null)
+        //             {
+        //                 return true;
+        //             }
+        //         }
+        //
+        //         return false;
+        //     }
+        //     
+        //     return true;
+        // }
 
         public void OnHoverBegan(Tool tool)
         {
@@ -74,33 +82,42 @@ namespace ECF.Views
             hoverIndicator.SetActive(false);
         }
 
-        public void UseTool(Tool tool)
+        public IToolUseResult UseTool(Tool tool)
         {
-            if (cropView == null)
+            
+            if (tool is Hand hand)
             {
-                return;
-            }
-
-            if (tool.type == ToolType.Hand)
-            {
-                if (cropStorage.Sell(Crop, out var err))
+                if (Crop != null)
                 {
+                    var crop = cropView;
                     Empty();
+                    return crop;
                 }
-                return;
+                if (hand.PickedUpResult != null)
+                {
+
+                    var crop = hand.PickedUpResult as CropView;
+                    if (crop != null)
+                    {
+                        Place(crop.Crop, cropStorage);
+                        hand.Release();
+                    }
+                }
+
+                return null;
             }
 
             if (tool.type == ToolType.SeedBag)
             {
                 if (cropStorage.ConvertToSeeds(Crop, out var err))
                 {
+                    var crop = cropView;
                     Empty();
-                }
-                else
-                {
-                    Debug.LogError(err);
+                    return crop;
                 }
             }
+
+            return null;
         }
     }
 }

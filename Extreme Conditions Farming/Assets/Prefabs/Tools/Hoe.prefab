@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 633489093613795721}
   - component: {fileID: 2729601167272092214}
-  - component: {fileID: 7926330581016425709}
   - component: {fileID: 105537758674710399}
+  - component: {fileID: 3646679707381219877}
   m_Layer: 0
   m_Name: Hoe
   m_TagString: Untagged
@@ -55,31 +55,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
---- !u!114 &7926330581016425709
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 61242195730604118}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02f7cfd4ffc37f248a740bd2d9d91b9d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  continuousUseTime: 1
-  effect: {fileID: 4825558904636702354}
-  continuous: 0
-  type: 0
-  icon: {fileID: 21300000, guid: dba507824074222448190c344e2b841d, type: 3}
-  actionSounds:
-  - {fileID: 8300000, guid: 506211816717cbd4489f77ccbec8ff76, type: 3}
-  - {fileID: 8300000, guid: c4e514143303a4d4eb9a1a5ab15816c2, type: 3}
-  - {fileID: 8300000, guid: 090879a2d8a77c645804a9f27f457260, type: 3}
-  - {fileID: 8300000, guid: 3297ffc75e8a7ea429be7adcb9384a48, type: 3}
-  - {fileID: 8300000, guid: 7971001b7b86ce54090b0fd1bfde90ed, type: 3}
-  - {fileID: 8300000, guid: 46cdc0c42feb2ac48b49bc74e8e42579, type: 3}
-  displayName: Hoe
 --- !u!82 &105537758674710399
 AudioSource:
   m_ObjectHideFlags: 0
@@ -176,6 +151,29 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &3646679707381219877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 61242195730604118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cf01f829d584770b82e133e9dfc8bcd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  effect: {fileID: 4825558904636702354}
+  type: 0
+  icon: {fileID: 21300000, guid: dba507824074222448190c344e2b841d, type: 3}
+  actionSounds:
+  - {fileID: 8300000, guid: 506211816717cbd4489f77ccbec8ff76, type: 3}
+  - {fileID: 8300000, guid: c4e514143303a4d4eb9a1a5ab15816c2, type: 3}
+  - {fileID: 8300000, guid: 090879a2d8a77c645804a9f27f457260, type: 3}
+  - {fileID: 8300000, guid: 3297ffc75e8a7ea429be7adcb9384a48, type: 3}
+  - {fileID: 8300000, guid: 7971001b7b86ce54090b0fd1bfde90ed, type: 3}
+  - {fileID: 8300000, guid: 46cdc0c42feb2ac48b49bc74e8e42579, type: 3}
+  displayName: Hoe
 --- !u!1 &1420775411011138012
 GameObject:
   m_ObjectHideFlags: 0
