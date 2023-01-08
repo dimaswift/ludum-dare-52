@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using ECF.Behaviours.Behaviours;
 using ECF.Domain;
+using UnityEngine;
 
 namespace ECF.Behaviours.Systems
 {
@@ -41,29 +42,6 @@ namespace ECF.Behaviours.Systems
             {
                 bed.Save();
             }
-        }
-
-        public bool Harvest(GardenBedBehaviour gardenBed, out string error)
-        {
-            error = null;
-            
-            if (!beds.Contains(gardenBed))
-            {
-                error = "Bed not found";
-                return false;
-            }
-
-            if (!gardenBed.TryHarvest(out var crop))
-            {
-                error = "Cannot harvest yet";
-                return false;
-            }
-            
-            beds.Remove(gardenBed);
-            simulation.Remove(gardenBed);
-            cropStorage.Add(crop);
-            
-            return true;
         }
 
         public IEnumerable<GardenBedBehaviour> GetBeds()

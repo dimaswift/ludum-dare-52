@@ -30,7 +30,17 @@ namespace ECF.Views
 
         protected override bool CanActivate()
         {
-            return Amount.Value > 0;
+            if (CurrentTarget == null)
+            {
+                return false;
+            }
+
+            if (CurrentTarget is GardenBedView)
+            {
+                return Amount.Value > 0;
+            }
+
+            return true;
         }
 
         private void SetSeedPosition(int seedCount)

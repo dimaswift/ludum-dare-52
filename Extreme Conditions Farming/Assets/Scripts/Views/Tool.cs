@@ -110,7 +110,7 @@ namespace ECF.Views
 
             var pos = ray.GetPoint(distance);
 
-            if (isAnimating && currentTarget != null)
+            if (currentTarget != null)
             {
                 var targetPos = currentTarget.Position;
                 pos = new Vector3(targetPos.x, 0, targetPos.z);

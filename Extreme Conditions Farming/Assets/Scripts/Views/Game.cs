@@ -87,7 +87,7 @@ namespace ECF.Views
                 Simulation.CropTemplateFactory.CreateLinear(
                     cropConfig.Value.name, 
                     cropConfig.Value.displayName, 
-                    cropConfig.Value.growthRate, 
+                    cropConfig.Value.growthDuration, 
                     cropConfig.Value.waterConsumption,
                     cropConfig.Value.seedConversionRate, 
                     cropConfig.Value.sellPrice);

@@ -1,13 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ECF.Domain;
+using ECF.Domain.Common;
 
 namespace ECF.Behaviours.Systems
 {
     public class CropStorage : BaseSystem, ICropStorage
     {
+        public ObservableValue<int> Capacity { get; } = new(4);
+
         private readonly CropStorageData data;
         private readonly HashSet<Crop> crops = new();
         private readonly ISimulation simulation;
+        public event Action<Crop> OnCropAdded;
 
         public CropStorage(ISimulation simulation)
         {
@@ -28,6 +33,11 @@ namespace ECF.Behaviours.Systems
             data.Crops.AddRange(crops);
         }
 
+        public bool HasRoom()
+        {
+            return crops.Count < Capacity.Value;
+        }
+        
         public bool Sell(Crop crop, out string error)
         {
             error = null;
@@ -44,14 +54,14 @@ namespace ECF.Behaviours.Systems
         public bool ConvertToSeeds(Crop crop, out string error)
         {
             error = null;
-            if (!Remove(crop))
-            {
-                error = "Crop not found";
-                return false;
-            }
             if (!CanConvertToSeeds(crop.Phase))
             {
                 error = "Crop is not mature";
+                return false;
+            }
+            if (!Remove(crop))
+            {
+                error = "Crop not found";
                 return false;
             }
             var template = simulation.CropTemplateFactory.Get(crop.Id);
@@ -63,6 +73,7 @@ namespace ECF.Behaviours.Systems
         {
             return crops;
         }
+
 
         private bool CanConvertToSeeds(CropPhase phase)
         {
@@ -76,10 +87,11 @@ namespace ECF.Behaviours.Systems
                     return false;
             }
         }
-        
+
         public void Add(Crop crop)
         {
             crops.Add(crop);
+            OnCropAdded?.Invoke(crop);
         }
 
         public bool Remove(Crop crop)

@@ -19,7 +19,7 @@ namespace ECF.Views
         [SerializeField] private Transform[] fills;
         [SerializeField] private Transform fullEffect;
         [SerializeField] private AudioClip fullSound;
-        [SerializeField] private float maxWaterLevel = 10;
+    
         public Vector3 Position => transform.position;
         private AudioSource audioSource;
         
@@ -109,7 +109,7 @@ namespace ECF.Views
 
         private void UpdateSoil()
         {
-            targetWaterLevelNormalized = behaviour.WaterLevel.Value / maxWaterLevel;
+            targetWaterLevelNormalized = (float) behaviour.WaterLevel.Value / behaviour.MaxWaterLevel;
         }
         
         private void Update()
@@ -128,7 +128,7 @@ namespace ECF.Views
                         
                         break;
                     case ToolType.WateringCan:
-                        progress = behaviour.WaterLevel.Value / maxWaterLevel;
+                        progress = (float) behaviour.WaterLevel.Value / behaviour.MaxWaterLevel;
    
                         break;
                 }

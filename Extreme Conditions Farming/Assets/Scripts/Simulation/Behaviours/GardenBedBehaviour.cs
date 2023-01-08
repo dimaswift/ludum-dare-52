@@ -10,6 +10,7 @@ namespace ECF.Behaviours.Behaviours
 {
     public class GardenBedBehaviour : ISimulated, IGardenBedBehaviour
     {
+        public int MaxWaterLevel => 10;
         public GardenBed Data => data;
         public ObservableValue<CropPhase> Phase { get; } = new(0);
         public ObservableValue<BedStatus> Status { get; } = new(0);
@@ -19,6 +20,7 @@ namespace ECF.Behaviours.Behaviours
         private CropTemplate template;
         private int nextPhaseProgress;
         private readonly ISimulation simulation;
+        private readonly ICropStorage cropStorage;
         private readonly GardenBed data;
 
         private int waterDepletionCounter;
@@ -31,6 +33,7 @@ namespace ECF.Behaviours.Behaviours
             Status.Value = data.Status;
             ShapeLevel.Value = data.ShapeLevel;
             WaterLevel.Value = data.WaterLevel;
+            cropStorage = this.simulation.GetSystem<ICropStorage>();
             if (data.Crop != null)
             {
                 PlaceCrop(data.Crop);
@@ -59,6 +62,16 @@ namespace ECF.Behaviours.Behaviours
             
         }
 
+        private int CalculateGrowRate(int delta)
+        {
+            if (WaterLevel.Value == 0)
+            {
+                return 0;
+            }
+            
+            return (int) Math.Ceiling(delta * ((float)WaterLevel.Value / MaxWaterLevel));
+        }
+        
         public void OnTick(int time, int delta)
         {
             waterDepletionCounter += delta;
@@ -74,7 +87,7 @@ namespace ECF.Behaviours.Behaviours
                 return;
             }
 
-            GrowthProgress.Value += delta;
+            GrowthProgress.Value += CalculateGrowRate(delta);
             
             while (GrowthProgress.Value >= nextPhaseProgress)
             {
@@ -201,6 +214,11 @@ namespace ECF.Behaviours.Behaviours
                 return false;
             }
 
+            if (!cropStorage.HasRoom())
+            {
+                return false;
+            }
+
             crop = new Crop()
             {
                 Id = template.HarvestId,
@@ -208,6 +226,8 @@ namespace ECF.Behaviours.Behaviours
                 Genetics = data.Crop.Genetics,
                 Phase = Phase.Value
             };
+            data.Crop.Phase = Phase.Value;
+            cropStorage.Add(data.Crop);
             data.Crop = null;
             Status.Value = BedStatus.Empty;
             Phase.Value = CropPhase.Seed;

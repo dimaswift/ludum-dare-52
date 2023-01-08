@@ -12,7 +12,6 @@ namespace ECF.Views
         
         private ObservableValue<CropPhase> phase;
         private CropPhase? prevPhase;
-        private Crop crop;
 
         private readonly Dictionary<CropPhase, GameObject> phases = new();
 
@@ -34,7 +33,6 @@ namespace ECF.Views
 
         public void SetUp(Crop crop, ObservableValue<CropPhase> phase)
         {
-            this.crop = crop;
             this.phase = phase;
             phase.Changed += OnPhaseChanged;
             foreach (var o in phases)
@@ -42,7 +40,14 @@ namespace ECF.Views
                 o.Value.SetActive(false);
             }
             OnPhaseChanged(phase.Value);
-           
+        }
+
+        private void OnDestroy()
+        {
+            if (phase != null)
+            {
+                phase.Changed -= OnPhaseChanged;
+            }
         }
 
         private void OnPhaseChanged(CropPhase phase)
@@ -50,7 +55,10 @@ namespace ECF.Views
             if (phase == prevPhase) return;
             if (prevPhase.HasValue)
             {
-                phases[prevPhase.Value].SetActive(false);
+                if (phases.ContainsKey(prevPhase.Value))
+                {
+                    phases[prevPhase.Value].SetActive(false);
+                }
             }
             phases[phase].SetActive(true);
             prevPhase = phase;
