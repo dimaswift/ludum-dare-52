@@ -58,19 +58,7 @@ namespace ECF.Behaviours
                     Time = 0,
                     Inventory = new InventorySystemData()
                     {
-                        Items = new List<InventoryItemData>()
-                        {
-                            new ()
-                            {
-                                Amount = config.StartCoins,
-                                Id = InventoryItems.Coins
-                            },
-                            new ()
-                            {
-                                Amount = 1,
-                                Id = config.Templates[0].SeedId
-                            }
-                        }
+                        Items = config.StartItems
                     },
                     CropStorage = new CropStorageData()
                     {

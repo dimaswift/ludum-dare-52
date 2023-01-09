@@ -16,7 +16,9 @@ namespace ECF.Views
         public int maxWaterLevel = 10;
         public int seedPrice = 5;
         public int wateringCanWaterAmount = 5;
-
+        
+        public int startSeedsAmount = 6;
+        
         public SimulationConfig GetSimulationConfig()
         {
             return new SimulationConfig()
