@@ -34,7 +34,7 @@ namespace ECF.Views
             {
                 return Amount.Value > 0 
                        && bed.Behaviour.Status.Value == BedStatus.Empty 
-                       && bed.Behaviour.ShapeLevel.Value >= bed.ShapesCount - 1;
+                       && bed.Behaviour.ShapeLevel.Value >= bed.ShapesCount - 3;
             }
 
             return false;

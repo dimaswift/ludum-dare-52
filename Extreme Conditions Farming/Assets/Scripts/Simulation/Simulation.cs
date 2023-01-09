@@ -12,6 +12,7 @@ namespace ECF.Behaviours
     {
         public event Action OnGameOver;
         public SimulationState State => state;
+        public SimulationConfig Config { get; }
         public ICropTemplateFactory CropTemplateFactory { get; }
         public IInventorySystem Inventory { get; }
         public ObservableValue<int> Hunger { get; } = new(0);
@@ -44,9 +45,10 @@ namespace ECF.Behaviours
 
             
 
-        public Simulation(SimulationState state = null)
+        public Simulation(SimulationConfig config, SimulationState state = null)
         {
-            CropTemplateFactory = new CropTemplateFactory();
+            Config = config;
+            CropTemplateFactory = new CropTemplateFactory(config.Templates.ToArray());
             
             if (state == null)
             {
@@ -60,8 +62,13 @@ namespace ECF.Behaviours
                         {
                             new ()
                             {
-                                Amount = 0,
+                                Amount = config.StartCoins,
                                 Id = InventoryItems.Coins
+                            },
+                            new ()
+                            {
+                                Amount = 1,
+                                Id = config.Templates[0].SeedId
                             }
                         }
                     },
@@ -79,13 +86,14 @@ namespace ECF.Behaviours
                     }
                 };
 
-                for (int i = 0; i < 16; i++)
+                for (int i = 0; i < config.GardenBedCount; i++)
                 {
                     state.GardenBeds.Beds.Add(new GardenBed()
                     {
-                        Status = BedStatus.Empty,
+                        Status = i < config.UnlockedBedsAmount ? BedStatus.Empty : BedStatus.Locked,
                         Number = i,
                         Crop = null,
+                        UnlockPrice = config.BaseUnlockPrice + (int) Math.Pow(config.BedUnlockPriceMultiplier, i)
                     });
                 }
             }

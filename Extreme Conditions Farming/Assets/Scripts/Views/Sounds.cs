@@ -3,9 +3,10 @@ using UnityEngine;
 
 namespace ECF.Views
 {
-    [Serializable]
-    public class Sounds
+    [CreateAssetMenu(menuName = "ECF/Sounds")]
+    public class Sounds : ScriptableObject
     {
-        public AudioClip[] dirt;
+        public AudioClip[] error;
+        public AudioClip[] coins;
     }
 }

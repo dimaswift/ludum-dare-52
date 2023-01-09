@@ -23,17 +23,27 @@ namespace ECF.Views
         private void Start()
         {
             hoverIndicator.SetActive(false);
+            Game.Instance.OnNewSimulationCreated += OnNewSimulationCreated;
         }
 
-        public void Place(Crop crop, ICropStorage cropStorage)
+        private void OnNewSimulationCreated()
         {
-            this.cropStorage = cropStorage;
+            cropStorage = Game.Instance.Simulation.GetSystem<ICropStorage>();
+            var crop = cropStorage.GetCropWithSlotNumber(transform.GetSiblingIndex());
+            if (crop != null)
+            {
+                Place(crop);
+            }
+        }
+
+        public void Place(Crop crop)
+        {
             Crop = crop;
-            var prefab = Game.Instance.ViewController.CropConfigs[crop.Id].prefab;
+            cropStorage.Add(crop, transform.GetSiblingIndex());
+            var prefab = Game.Instance.CropConfigs[crop.Id].prefab;
             var instance = Instantiate(prefab.gameObject, transform).GetComponent<CropView>();
             instance.transform.SetPositionAndRotation(cropPoint.position, cropPoint.rotation);
-            phase = new(crop.Phase);
-            instance.SetUp(crop, phase);
+            instance.SetUp(crop);
             cropView = instance;
         }
 
@@ -43,34 +53,11 @@ namespace ECF.Views
             {
                 return;
             }
+            cropStorage.Remove(Crop.SlotNumber, out _);
             phase = null;
             cropView = null;
             Crop = null;
         }
-
-        // public bool CanUseTool(Tool tool)
-        // {
-        //     if (tool.type != ToolType.Hand && tool.type != ToolType.SeedBag)
-        //     {
-        //         return false;
-        //     }
-        //     
-        //     
-        //     if (Crop == null)
-        //     {
-        //         if (tool is Hand hand)
-        //         {
-        //             if (hand.PickedUpResult != null)
-        //             {
-        //                 return true;
-        //             }
-        //         }
-        //
-        //         return false;
-        //     }
-        //     
-        //     return true;
-        // }
 
         public void OnHoverBegan(Tool tool)
         {
@@ -84,7 +71,6 @@ namespace ECF.Views
 
         public IToolUseResult UseTool(Tool tool)
         {
-            
             if (tool is Hand hand)
             {
                 if (Crop != null)
@@ -95,11 +81,10 @@ namespace ECF.Views
                 }
                 if (hand.PickedUpResult != null)
                 {
-
                     var crop = hand.PickedUpResult as CropView;
                     if (crop != null)
                     {
-                        Place(crop.Crop, cropStorage);
+                        Place(crop.Crop);
                         hand.Release();
                     }
                 }

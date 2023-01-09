@@ -6,10 +6,6 @@ namespace ECF.Views
 {
     public class ViewController : MonoBehaviour
     {
-        public Dictionary<string, CropConfig> CropConfigs { get; private set; }
-        public SoundsConfig SoundsConfig => soundsConfig;
-        
-        [SerializeField] private SoundsConfig soundsConfig;
         [SerializeField] private SimulationView simulationView;
         
         public SimulationView SimulationView { get; private set; }
@@ -18,11 +14,6 @@ namespace ECF.Views
         {
             Game.Instance.OnNewSimulationCreated += OnNewSimulationCreated;
             simulationView.gameObject.SetActive(false);
-            CropConfigs = new();
-            foreach (CropConfig config in Resources.LoadAll<CropConfig>("CropConfigs"))
-            {
-                CropConfigs.Add(config.name, config);
-            }
         }
 
         private void OnNewSimulationCreated()

@@ -25,6 +25,7 @@ namespace ECF.Behaviours
         IInventorySystem Inventory { get; }
         int GetRandom(int min, int max);
         SimulationState State { get; }
+        SimulationConfig Config { get; }
         void CreateSystems();
     }
 }

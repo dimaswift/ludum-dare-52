@@ -16,9 +16,13 @@ namespace ECF.Views
         [SerializeField] private ToolController toolController;
         [SerializeField] private ViewController viewController;
         [SerializeField] private WindowManager windowManager;
-
+        [SerializeField] private Sounds sounds;
+        [SerializeField] private GameSettings settings;
         public ToolController Tools => toolController;
-        
+
+        public Sounds Sounds => sounds;
+        public GameSettings Settings => settings;
+        public Dictionary<string, CropConfig> CropConfigs { get; } = new();
         public ViewController ViewController => viewController;
         
         public ObservableValue<GamePhase> Phase { get; } = new (GamePhase.MainMenu);
@@ -59,9 +63,13 @@ namespace ECF.Views
             StorageService = new PlayerPrefsStorage();
             save = StorageService.Load(() => new PlayerSave());
             windowManager.Show<MainMenu>();
+            foreach (var cropConfig in Resources.LoadAll<CropConfig>("CropConfigs"))
+            {
+                CropConfigs.Add(cropConfig.name, cropConfig);
+            }
         }
 
-        private void Awake()
+        private void Start()
         {
             Init();
         }
@@ -80,24 +88,14 @@ namespace ECF.Views
         
         public void StartSimulation(PlayerSave save)
         {
-            bool isNew = save.SimulationState == null;
-            Simulation = new Simulation(save.SimulationState);
-            foreach (var cropConfig in viewController.CropConfigs)
+            var config = settings.GetSimulationConfig();
+            config.Templates = new List<CropTemplate>();
+            foreach (var cropConfig in CropConfigs)
             {
-                Simulation.CropTemplateFactory.CreateLinear(
-                    cropConfig.Value.name, 
-                    cropConfig.Value.displayName, 
-                    cropConfig.Value.growthDuration, 
-                    cropConfig.Value.waterConsumption,
-                    cropConfig.Value.seedConversionRate, 
-                    cropConfig.Value.sellPrice,
-                    cropConfig.Value.nutrition);
+                config.Templates.Add(cropConfig.Value.ToTemplate());
             }
+            Simulation = new Simulation(config, save.SimulationState);
             Simulation.CreateSystems();
-            if (isNew)
-            {
-                Simulation.Inventory.Add(Simulation.CropTemplateFactory.Get("Tomato").SeedId, 9);
-            }
             OnNewSimulationCreated?.Invoke();
             Simulation.OnGameOver += OnGameOver;
             Phase.Value = GamePhase.Playing;
@@ -165,6 +163,11 @@ namespace ECF.Views
             }
             Phase.Value = GamePhase.Paused;
             windowManager.Show<PauseMenu>();
+        }
+
+        private void OnApplicationQuit()
+        {
+            Save();
         }
 
         public void Resume()

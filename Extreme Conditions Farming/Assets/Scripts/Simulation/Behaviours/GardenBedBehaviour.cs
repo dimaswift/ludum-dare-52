@@ -9,7 +9,7 @@ namespace ECF.Behaviours.Behaviours
 {
     public class GardenBedBehaviour : ISimulated, IGardenBedBehaviour
     {
-        public int MaxWaterLevel => 9;
+        public int MaxWaterLevel => simulation.Config.MaxWaterLevel;
         
         public GardenBed Data => data;
         public ObservableValue<CropPhase> Phase { get; } = new(0);
@@ -17,15 +17,14 @@ namespace ECF.Behaviours.Behaviours
         public ObservableValue<int> ShapeLevel { get; } = new (0);
         public ObservableValue<int> WaterLevel { get; } = new(0);
         public ObservableValue<int> GrowthProgress { get; } = new(0);
+        public ObservableValue<float> CurrentPhaseProgressNormalized { get; } = new(0);
         private CropTemplate template;
         private int nextPhaseProgress;
         private readonly ISimulation simulation;
-        private readonly ICropStorage cropStorage;
         private readonly GardenBed data;
 
         private int waterDepletionCounter;
         
-
         public GardenBedBehaviour(ISimulation simulation, GardenBed data)
         {
             this.simulation = simulation;
@@ -33,7 +32,10 @@ namespace ECF.Behaviours.Behaviours
             Status.Value = data.Status;
             ShapeLevel.Value = data.ShapeLevel;
             WaterLevel.Value = data.WaterLevel;
-            cropStorage = this.simulation.GetSystem<ICropStorage>();
+            GrowthProgress.Changed += p =>
+            {
+                CurrentPhaseProgressNormalized.Value = Mathf.Clamp01((float)p / nextPhaseProgress);
+            };
             if (data.Crop != null)
             {
                 PlaceCrop(data.Crop);
@@ -46,8 +48,10 @@ namespace ECF.Behaviours.Behaviours
             data.ShapeLevel = ShapeLevel.Value;
             data.WaterLevel = WaterLevel.Value;
             data.Status = Status.Value;
+           
             if (data.Crop != null)
             {
+                data.Crop.GrowProgress = CurrentPhaseProgressNormalized.Value;
                 data.Crop.Phase = Phase.Value;
             }
         }
@@ -61,22 +65,50 @@ namespace ECF.Behaviours.Behaviours
         {
             
         }
-
-        private int CalculateGrowRate(int delta)
+        
+        private int CalculateWaterDepletionSpeed()
         {
             if (WaterLevel.Value == 0)
             {
                 return 0;
             }
+
+            if (WaterLevel.Value >= 20)
+            {
+                return 30;
+            }
+
+            if (WaterLevel.Value >= 10)
+            {
+                return 15;
+            }
             
-            return (int) Math.Ceiling(delta * ((float)WaterLevel.Value / MaxWaterLevel));
+            return 3;
         }
+
+        private int CalculateWaterConsumptionSpeed()
+        {
+            if (WaterLevel.Value > 20)
+            {
+                return 3;
+            }
+
+            if (WaterLevel.Value > 10)
+            {
+                return 2;
+            }
+
+            return 1;
+        }
+
         
         public void OnTick(int time, int delta)
         {
-            waterDepletionCounter += delta;
+            var depletionSpeed = CalculateWaterDepletionSpeed();
+            
+            waterDepletionCounter += delta * depletionSpeed;
 
-            if (waterDepletionCounter > 30)
+            if (waterDepletionCounter > simulation.Config.GardenBedWaterCapacity)
             {
                 waterDepletionCounter = 0;
                 WaterLevel.Value = Math.Max(0, WaterLevel.Value - 1);
@@ -87,7 +119,12 @@ namespace ECF.Behaviours.Behaviours
                 return;
             }
 
-            GrowthProgress.Value += CalculateGrowRate(delta);
+            if (Phase.Value == CropPhase.Rotten)
+            {
+                return;
+            }
+            
+            GrowthProgress.Value += CalculateWaterConsumptionSpeed() * delta;
             
             while (GrowthProgress.Value >= nextPhaseProgress)
             {
@@ -95,9 +132,9 @@ namespace ECF.Behaviours.Behaviours
                
                 if (Phase.Value == CropPhase.Rotten)
                 {
+                    nextPhaseProgress = template.PhaseStats.Durations[Phase.Value];
                     break;
                 }
-
                 Phase.Value = (CropPhase)((int)Phase.Value + 1);
                 nextPhaseProgress = template.PhaseStats.Durations[Phase.Value];
             }
@@ -147,14 +184,14 @@ namespace ECF.Behaviours.Behaviours
             return Genetics.Average;
         }
 
-        private void PlaceCrop(Crop crop)
+        public void PlaceCrop(Crop crop)
         {
             data.Crop = crop;
             template = simulation.CropTemplateFactory.Get(crop.Id);
             Status.Value = BedStatus.Planted;
             nextPhaseProgress = template.PhaseStats.Durations[data.Crop.Phase];
             Phase.Value = data.Crop.Phase;
-            ShapeLevel.Value--;
+            GrowthProgress.Value = (int) (crop.GrowProgress * nextPhaseProgress);
         }
 
         public void ImproveShape()
@@ -167,7 +204,7 @@ namespace ECF.Behaviours.Behaviours
             WaterLevel.Value += amount;
             waterDepletionCounter = 0;
         }
-        
+
         public bool Plant(CropTemplate template, out Crop crop, out string error)
         {
             error = null;
@@ -208,31 +245,19 @@ namespace ECF.Behaviours.Behaviours
             {
                 return false;
             }
-
-            if (!Phase.Value.IsHarvestable())
-            {
-                return false;
-            }
-
-            if (!cropStorage.HasRoom())
-            {
-                return false;
-            }
-
             crop = new Crop()
             {
-                Id = template.HarvestId,
+                Id = template.Id,
                 Attributes = data.Crop.Attributes,
                 Genetics = data.Crop.Genetics,
-                Phase = Phase.Value
+                Phase = Phase.Value,
+                GrowProgress = CurrentPhaseProgressNormalized.Value
             };
             data.Crop.Phase = Phase.Value;
-            cropStorage.Add(data.Crop);
             data.Crop = null;
             Status.Value = BedStatus.Empty;
             Phase.Value = CropPhase.Seed;
-            nextPhaseProgress = 0;
-            ShapeLevel.Value = 0;
+            ShapeLevel.Value = Math.Max(0, ShapeLevel.Value - 1);
             return true;
         }
     }

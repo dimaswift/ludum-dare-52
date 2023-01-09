@@ -9,9 +9,9 @@ namespace ECF.Behaviours.Systems
     {
         bool HasRoom();
         ObservableValue<int> Capacity { get; }
-        void Add(Crop crop);
-        bool Remove(Crop crop);
-
+        void Add(Crop crop, int slot);
+        bool Remove(int slot, out Crop crop);
+        Crop GetCropWithSlotNumber(int number);
         bool Sell(Crop crop, out int revenue);
 
         bool ConvertToSeeds(Crop crop, out int seedsAdded);

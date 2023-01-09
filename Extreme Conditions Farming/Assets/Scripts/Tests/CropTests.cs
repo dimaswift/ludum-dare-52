@@ -10,7 +10,7 @@ public class CropTests
     [Test]
     public void GardenBedBehaviourPhasesTestPasses()
     {
-        var simulation = new Simulation();
+        var simulation = new Simulation(new SimulationConfig());
         simulation.CreateSystems();
         var bed = new GardenBedBehaviour(simulation, new GardenBed()
         {

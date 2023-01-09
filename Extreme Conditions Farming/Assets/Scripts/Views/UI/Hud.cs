@@ -52,18 +52,11 @@ namespace ECF.Views.UI
                 Game.Instance.Pause();
             }
         }
-
-        private string GetDuration(int ticks)
-        {
-            var span = TimeSpan.FromHours(ticks);
-            if (span.Days > 0)
-                return $"{span.Days}d {span.Hours}h";
-            return $"{span.Hours}h";
-        }
+        
 
         private void OnTimeChanged(int time)
         {
-            tickText.text = GetDuration(time);
+            tickText.text = time.GetDurationText();
         }
     }
 }

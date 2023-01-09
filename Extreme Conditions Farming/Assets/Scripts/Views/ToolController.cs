@@ -1,4 +1,5 @@
 ﻿using System;
+using ECF.Domain.Game;
 using UnityEngine;
 
 namespace ECF.Views
@@ -48,7 +49,7 @@ namespace ECF.Views
 
         private void Update()
         {
-            if (currentTool == null)
+            if (currentTool == null || Game.Instance.Phase.Value != GamePhase.Playing)
             {
                 return;
             }
