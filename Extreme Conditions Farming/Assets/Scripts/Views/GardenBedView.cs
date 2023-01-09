@@ -125,7 +125,7 @@ namespace ECF.Views
         private void StatusOnChanged(BedStatus status)
         {
             lockedState.SetActive(behaviour.Status.Value == BedStatus.Locked);
-            SetFormState(behaviour.Data.ShapeLevel);
+            SetFormState(behaviour.ShapeLevel.Value);
         }
 
         private void UpdateSoil()
