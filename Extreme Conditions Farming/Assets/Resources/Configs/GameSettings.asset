@@ -15,9 +15,10 @@ MonoBehaviour:
   gardenBedCount: 28
   bedUnlockPriceMultiplier: 1.3
   baseUnlockPrice: 10
-  unlockedBedsAmount: 3
+  unlockedBedsAmount: 6
   startCoins: 25
   waterCapacity: 25
   maxWaterLevel: 30
-  seedPrice: 5
+  seedPrice: 10
   wateringCanWaterAmount: 10
+  startSeedsAmount: 6

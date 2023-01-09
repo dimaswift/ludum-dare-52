@@ -14,6 +14,7 @@ namespace ECF.Domain
         public int SeedPrice { get; set; } = 5;
         public int WateringCanWaterAmount { get; set; } = 5;
         public List<CropTemplate> Templates { get; set; } = new();
-        
+        public List<InventoryItemData> StartItems { get; set; } = new();
+
     }
 }

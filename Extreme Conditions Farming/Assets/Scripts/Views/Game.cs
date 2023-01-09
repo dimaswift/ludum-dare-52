@@ -94,6 +94,20 @@ namespace ECF.Views
             {
                 config.Templates.Add(cropConfig.Value.ToTemplate());
             }
+
+            config.StartItems = new List<InventoryItemData>()
+            {
+                new()
+                {
+                    Amount = settings.startSeedsAmount,
+                    Id = config.Templates[0].SeedId
+                },
+                new ()
+                {
+                    Amount = settings.startCoins,
+                    Id = InventoryItems.Coins
+                }
+            };
             Simulation = new Simulation(config, save.SimulationState);
             Simulation.CreateSystems();
             OnNewSimulationCreated?.Invoke();
