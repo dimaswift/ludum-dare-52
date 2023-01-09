@@ -11,7 +11,7 @@ public class SimulationTests
     public void SimulationTestPasses()
     {
         var items = new HashSet<ISimulated>();
-        var simulation = new Simulation();
+        var simulation = new Simulation(new SimulationConfig());
         simulation.OnRemoved += s =>
         {
             if (s is MockSimulated)

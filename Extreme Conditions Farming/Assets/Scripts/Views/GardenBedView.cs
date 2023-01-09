@@ -1,26 +1,38 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using ECF.Behaviours;
 using ECF.Behaviours.Behaviours;
+using ECF.Behaviours.Systems;
 using ECF.Domain;
 using ECF.Domain.Common;
+using TMPro;
 using UnityEngine;
 
 namespace ECF.Views
 {
     public class GardenBedView : MonoBehaviour, IToolTarget, IToolUseResult
     {
+        public Transform HoldPoint
+        {
+            get
+            {
+                if (currentCrop != null)
+                {
+                    return currentCrop.HoldPoint;
+                }
+
+                return transform;
+            }
+        }
         public GardenBedBehaviour Behaviour => behaviour;
         public int ShapesCount => formStates.Length;
         
-        
+        [SerializeField] private TextMeshPro unlockPriceText;
         [SerializeField] private GameObject selectedIndicator;
         [SerializeField] private GameObject hoverIndicator;
         [SerializeField] private GameObject lockedState;
         [SerializeField] private GameObject[] formStates;
         [SerializeField] private Transform[] fills;
         [SerializeField] private Transform fullEffect;
-        [SerializeField] private AudioClip fullSound;
 
         public float ToolHeight
         {
@@ -28,7 +40,7 @@ namespace ECF.Views
             {
                 if (currentCrop != null)
                 {
-                    return currentCrop.height;
+                    return 2;
                 }
 
                 return 0;
@@ -36,13 +48,6 @@ namespace ECF.Views
         }
 
         public Vector3 Position => transform.position;
-        private AudioSource audioSource;
-        
-        private readonly HashSet<ToolType> supportedTools = new ()
-        {
-            ToolType.Hoe,
-            ToolType.WateringCan,
-        };
 
         private GardenBedBehaviour behaviour;
 
@@ -58,18 +63,17 @@ namespace ECF.Views
         private float targetWaterLevelNormalized;
         private CropView currentCrop;
         
-        public void SetFormState(int amount)
+        private void SetFormState(int amount)
         {
             amount = Mathf.Clamp(amount, 0, formStates.Length - 1);
             for (int i = 0; i < formStates.Length; i++)
             {
-                formStates[i].SetActive(amount == i);
+                formStates[i].SetActive(behaviour.Status.Value != BedStatus.Locked && amount == i);
             }
         }
 
         private void Awake()
         {
-            audioSource = GetComponent<AudioSource>();
             selected.Changed += s => selectedIndicator.SetActive(s);
             selectedIndicator.SetActive(false);
             hoverIndicator.SetActive(false);
@@ -105,6 +109,7 @@ namespace ECF.Views
             this.behaviour.WaterLevel.Changed += WaterLevelOnChanged;
             StatusOnChanged(behaviour.Status.Value);
             WaterLevelOnChanged(this.behaviour.WaterLevel.Value);
+            unlockPriceText.text = behaviour.Data.UnlockPrice.ToString();
             currentWaterLevelNormalized = targetWaterLevelNormalized;
             if (this.behaviour.Data.Crop != null)
             {
@@ -120,6 +125,7 @@ namespace ECF.Views
         private void StatusOnChanged(BedStatus status)
         {
             lockedState.SetActive(behaviour.Status.Value == BedStatus.Locked);
+            SetFormState(behaviour.ShapeLevel.Value);
         }
 
         private void UpdateSoil()
@@ -153,42 +159,9 @@ namespace ECF.Views
                     fill.transform.localScale =
                         Vector3.Lerp(fill.transform.localScale, new Vector3(1, 1, progress), Time.deltaTime * 15);
                 }
-              
-            }
-
-            
-            
-            if (Mathf.Approximately(prevProgress, progress))
-            {
-                return;
-            }
-            
-            prevProgress = progress;
-
-            // if (Mathf.Approximately(progress, 1))
-            // {
-            //     StartCoroutine(PlayFullEffect());
-            // }
-
-            // Color color = Color.Lerp(Color.red, Color.green, progress);
-            // color.a = 1f - Mathf.Clamp((Time.time - lastToolUseTime) / 2, 0, 1);
-            // fillMaterial.SetColor(ColorProp, color);
-            // fillMaterial.SetColor(EmissionColorProp, color);
-        }
-
-        IEnumerator PlayFullEffect()
-        {
-            audioSource.PlayOneShot(fullSound);
-            float t = 0f;
-            while (t < 1f)
-            {
-                t += Time.deltaTime * 3;
-                fullEffect.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 2.0f, t);
-                finishMaterial.SetColor(ColorProp, Color.Lerp(Color.green, new Color(0,1,0,0), t));
-                finishMaterial.SetColor(EmissionColorProp, Color.Lerp(Color.green, new Color(0, 1, 0, 0), t));
-                yield return null;
             }
         }
+        
 
         [Serializable]
         public class FormState
@@ -214,72 +187,114 @@ namespace ECF.Views
 
         private void Water()
         {
-            behaviour.Water(2);
+            behaviour.Water(Game.Instance.Settings.wateringCanWaterAmount);
         }
 
         private void PlaceCrop(Crop crop)
         {
-            var config = Game.Instance.ViewController.CropConfigs[crop.Id];
+            var config = Game.Instance.CropConfigs[crop.Id];
             var cropObject = Instantiate(config.prefab.gameObject, transform.position, Quaternion.identity)
                 .GetComponent<CropView>();
             cropObject.transform.SetParent(transform);
-            cropObject.SetUp(crop, behaviour.Phase);
+            cropObject.SetUp(crop);
+            cropObject.Subscribe(behaviour);
             currentCrop = cropObject;
         }
+        
 
-        private void CollectCrop()
+        private IToolUseResult UseHand(Hand hand)
         {
-            if (currentCrop != null)
+            if (behaviour.Status.Value == BedStatus.Locked)
             {
-                Destroy(currentCrop.gameObject);
-                currentCrop = null;
+                if (behaviour.Unlock())
+                {
+                    AudioSource.PlayClipAtPoint(Game.Instance.Sounds.coins.Random(), transform.position);
+                }
+
+                return null;
             }
-        }
 
-        public IToolUseResult UseTool(Tool tool)
-        {
-            switch (tool.type)
+            if (hand.PickedUpResult is CropView holdingCrop)
             {
-                case ToolType.Hoe:
-                    if (behaviour.ShapeLevel.Value < formStates.Length)
-                    {
-                        Plow();
-                        tool.SetEffectMaterial(soilMaterial);
-                        return this;
-                    }
+                if (holdingCrop.Crop.Phase.CanPlant())
+                {
+                    behaviour.PlaceCrop(holdingCrop.Crop);
+                    PlaceCrop(holdingCrop.Crop);
+                    hand.Release();
                     return null;
-                case ToolType.WateringCan:
-                    if (behaviour.WaterLevel.Value < 10)
-                    {
-                        Water();
-                        return this;
-                    }
+                }
 
-                    return null;
-                case ToolType.SeedBag:
-                    var bag = tool as SeedBag;
-                    var template = Game.Instance.Simulation.CropTemplateFactory.Get(bag.templateId);
-                    if (behaviour.Plant(template, out var crop, out _))
-                    {
-                        PlaceCrop(crop);
-                        return this;
-                    }
+                return null;
+            }
 
-                    return null;
-                case ToolType.Shovel:
-                    if (behaviour.TryHarvest(out var harvest))
-                    {
-                        CollectCrop();
-                        return this;
-                    }
-
-                    return null;
+            if (behaviour.TryHarvest(out var collected))
+            {
+                var c = currentCrop;
+                c.SetUp(collected);
+                currentCrop = null;
+                return c;
             }
 
             return null;
         }
 
+        public IToolUseResult UseTool(Tool tool)
+        {
+            if (tool is Hand hand)
+            {
+                return UseHand(hand);
+            }
 
-       
+            if (tool is Hoe hoe)
+            {
+                return UseHoe(hoe);
+            }
+            
+            if (tool is WateringCan wateringCan)
+            {
+                return UseWateringCan(wateringCan);
+            }
+            
+            if (tool is SeedBag seed)
+            {
+                return UseSeedBag(seed);
+            }
+            
+            return null;
+        }
+
+        private IToolUseResult UseSeedBag(SeedBag bag)
+        {
+            var template = Game.Instance.Simulation.CropTemplateFactory.Get(bag.templateId);
+            if (behaviour.Plant(template, out var crop, out _))
+            {
+                PlaceCrop(crop);
+                return this;
+            }
+            return null;
+        }
+
+        private IToolUseResult UseWateringCan(WateringCan wateringCan)
+        {
+            if (behaviour.WaterLevel.Value < behaviour.MaxWaterLevel)
+            {
+                Water();
+                return this;
+            }
+
+            return null;
+        }
+
+        private IToolUseResult UseHoe(Hoe hoe)
+        {
+            if (behaviour.ShapeLevel.Value < formStates.Length)
+            {
+                Plow();
+                hoe.SetEffectMaterial(soilMaterial);
+                return this;
+            }
+
+            return null;
+        }
     }
 }

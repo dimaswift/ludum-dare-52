@@ -13,7 +13,7 @@ namespace ECF.Behaviours.Systems
         
         private readonly FamilySystemData data;
         
-        private const int PREGNANCY_DURATION = 365 * 24;
+        private const int PREGNANCY_DURATION = 30 * 24;
 
         public Family(FamilySystemData data)
         {
@@ -35,7 +35,7 @@ namespace ECF.Behaviours.Systems
 
         public void OnTick(int time, int delta)
         {
-            Hunger.Value += delta * MembersAmount.Value;
+            Hunger.Value += delta * MembersAmount.Value * 2;
             PregnancyProgress.Value += delta;
             if (PregnancyProgress.Value >= PREGNANCY_DURATION)
             {

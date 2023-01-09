@@ -4,21 +4,6 @@ namespace ECF.Behaviours
 {
     public static class Extensions
     {
-        public static bool IsHarvestable(this CropPhase phase)
-        {
-            switch (phase)
-            {
-                case CropPhase.Ripe:
-                case CropPhase.Overripe:
-                case CropPhase.Unripe:
-                case CropPhase.Green:
-                case CropPhase.Rotten:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         public static bool CanConvertToSeeds(this CropPhase phase)
         {
             switch (phase)
@@ -39,6 +24,20 @@ namespace ECF.Behaviours
                 case CropPhase.Unripe:
                 case CropPhase.Ripe:
                 case CropPhase.Overripe:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public static bool CanPlant(this CropPhase phase)
+        {
+            switch (phase)
+            {
+                case CropPhase.Seed:
+                case CropPhase.Bud:
+                case CropPhase.Flower:
+                case CropPhase.Sprout:
                     return true;
                 default:
                     return false;

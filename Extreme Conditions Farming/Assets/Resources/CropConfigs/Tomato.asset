@@ -14,7 +14,98 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefab: {fileID: 7348146829501328492, guid: fa5cc664acb6cc544be6db31d138ae40, type: 3}
   displayName: Tomato
-  growthDuration: 20
-  waterConsumption: 10
-  seedConversionRate: 3
-  sellPrice: 5
+  growthDuration:
+  - phase: 2
+    value: 40
+  - phase: 3
+    value: 40
+  - phase: 4
+    value: 50
+  - phase: 8
+    value: 100
+  - phase: 7
+    value: 100
+  - phase: 5
+    value: 70
+  - phase: 1
+    value: 40
+  - phase: 0
+    value: 20
+  - phase: 6
+    value: 100
+  waterConsumption:
+  - phase: 2
+    value: 10
+  - phase: 3
+    value: 10
+  - phase: 4
+    value: 10
+  - phase: 8
+    value: 0
+  - phase: 7
+    value: 0
+  - phase: 5
+    value: 10
+  - phase: 1
+    value: 10
+  - phase: 0
+    value: 5
+  - phase: 6
+    value: 5
+  seedConversionRate:
+  - phase: 2
+    value: 0
+  - phase: 3
+    value: 0
+  - phase: 4
+    value: 0
+  - phase: 8
+    value: 3
+  - phase: 7
+    value: 3
+  - phase: 5
+    value: 1
+  - phase: 1
+    value: 0
+  - phase: 0
+    value: 1
+  - phase: 6
+    value: 2
+  sellPrice:
+  - phase: 2
+    value: 1
+  - phase: 3
+    value: 5
+  - phase: 4
+    value: 2
+  - phase: 8
+    value: 1
+  - phase: 7
+    value: 10
+  - phase: 5
+    value: 5
+  - phase: 1
+    value: 3
+  - phase: 0
+    value: 1
+  - phase: 6
+    value: 25
+  nutrition:
+  - phase: 2
+    value: 0
+  - phase: 3
+    value: 0
+  - phase: 4
+    value: 10
+  - phase: 8
+    value: 0
+  - phase: 7
+    value: 200
+  - phase: 5
+    value: 75
+  - phase: 1
+    value: 0
+  - phase: 0
+    value: 25
+  - phase: 6
+    value: 300

@@ -25,20 +25,20 @@ namespace ECF.Views
 
         private float noTargetTime;
         private Camera cam;
-        private bool isAnimating;
-
+   
         public virtual void Init(ISimulation simulation)
         {
-            
+            currentTarget = null;
+            Stop();
         }
-
+        
         private void Awake()
         {
             cam = Camera.main;
             Animator = GetComponent<Animator>();
             audioSource = GetComponent<AudioSource>();
         }
-
+        
         private void OnEnable()
         {
             Move(cam.ScreenPointToRay(Input.mousePosition), null, false);
@@ -52,6 +52,11 @@ namespace ECF.Views
         public virtual void Stop()
         {
             RemoveTarget();
+            if (Animator == null)
+            {
+                return;
+            }
+           
             Animator.SetBool(Active, false);
         }
         
@@ -110,7 +115,11 @@ namespace ECF.Views
             if (currentTarget != null)
             {
                 var targetPos = currentTarget.Position;
-                pos = new Vector3(targetPos.x, 0, targetPos.z);
+                pos = new Vector3(targetPos.x, currentTarget.ToolHeight, targetPos.z);
+                if (currentTarget is IToolUseResult toolUseResult)
+                {
+                    pos.y = toolUseResult.HoldPoint.position.y;
+                }
             }
             
             transform.position = lerp ? Vector3.Lerp(transform.position, pos, Time.deltaTime * 25) : pos;
@@ -158,12 +167,12 @@ namespace ECF.Views
 
         public void OnAnimationStarted()
         {
-            isAnimating = true;
+            
         }
 
         public void OnAnimationFinished()
         {
-            isAnimating = false;
+            
         }
 
         protected virtual void OnToolUsed(IToolUseResult result) {}

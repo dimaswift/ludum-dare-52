@@ -10,7 +10,8 @@ public class CropTests
     [Test]
     public void GardenBedBehaviourPhasesTestPasses()
     {
-        var simulation = new Simulation();
+        var simulation = new Simulation(new SimulationConfig());
+        simulation.CreateSystems();
         var bed = new GardenBedBehaviour(simulation, new GardenBed()
         {
             Number = 0,
@@ -18,7 +19,7 @@ public class CropTests
         });
         var time = 0;
         BedStatus currentStatus = bed.Status.Value;
-        var template = simulation.CropTemplateFactory.CreateLinear("Test", "Test", 10, 10, 10, 10);
+        var template = simulation.CropTemplateFactory.CreateLinear("Test", "Test", 10, 10, 10, 10, 10);
         void Tick(int delta)
         {
             time += delta;

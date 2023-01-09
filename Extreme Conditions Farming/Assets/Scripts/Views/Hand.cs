@@ -1,4 +1,5 @@
 ﻿using ECF.Behaviours;
+using ECF.Domain;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,8 +11,24 @@ namespace ECF.Views
         
         private static readonly int Holding = Animator.StringToHash("Holding");
         private IToolUseResult pickedUpResult;
-        public IToolUseResult PickedUpResult => pickedUpResult; 
-        
+        public IToolUseResult PickedUpResult => pickedUpResult;
+
+        public override void Init(ISimulation simulation)
+        {
+            base.Init(simulation);
+            
+            if (Animator != null)
+            {
+                Animator.SetBool(Holding, false);
+            }
+          
+            if (pickedUpResult != null)
+            {
+                Destroy(pickedUpResult.transform.gameObject);
+                pickedUpResult = null;
+            }
+        }
+
         public override void Process()
         {
             base.Process();
@@ -19,6 +36,7 @@ namespace ECF.Views
             {
                 pickedUpResult.transform.SetParent(pickUpPoint);
                 pickedUpResult.transform.SetPositionAndRotation(pickUpPoint.position, pickUpPoint.rotation);
+                pickedUpResult.transform.Translate(-pickedUpResult.HoldPoint.localPosition * pickedUpResult.HoldPoint.parent.localScale.x, Space.Self);
             }
         }
 
@@ -42,6 +60,32 @@ namespace ECF.Views
             base.Stop();
         }
 
+        private bool CanActivateGardenBed(GardenBedView bed)
+        {
+            if (bed.Behaviour.Status.Value == BedStatus.Locked)
+            {
+                if (PickedUpResult != null)
+                {
+                    return false;
+                }
+
+                var coins = Game.Instance.Simulation.Inventory.Get(InventoryItems.Coins).Value;
+                return bed.Behaviour.Data.UnlockPrice <= coins;
+            }
+
+            if (PickedUpResult != null)
+            {
+                if (PickedUpResult is CropView crop)
+                {
+                    return bed.Behaviour.Status.Value == BedStatus.Empty && crop.Crop.Phase.CanPlant();
+                }
+
+                return false;
+            }
+
+            return bed.Behaviour.Status.Value == BedStatus.Planted;
+        }
+        
         public override bool CanActivate(IToolTarget target)
         {
             if (target is CropSlot slot)
@@ -81,6 +125,16 @@ namespace ECF.Views
                     }
                 }
 
+            }
+
+            if (target is GardenBedView bed)
+            {
+                return CanActivateGardenBed(bed);
+            }
+
+            if (target is SeedShop)
+            {
+                return PickedUpResult == null;
             }
             
             return false;

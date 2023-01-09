@@ -6,7 +6,8 @@ namespace ECF.Behaviours.Systems
     {
         CropTemplate GetOrCreate(string id, CropTemplateBuilder builder);
         CropTemplate Get(string id);
+
         CropTemplate CreateLinear(string id, string name, int growthDuration, int waterConsumption,
-            int seedConversionRate, int sellPrice);
+            int seedConversionRate, int sellPrice, int nutrition);
     }
 }
