@@ -16,23 +16,23 @@ MonoBehaviour:
   displayName: Tomato
   growthDuration:
   - phase: 2
-    value: 20
+    value: 40
   - phase: 3
-    value: 20
+    value: 40
   - phase: 4
-    value: 30
+    value: 50
   - phase: 8
     value: 100
   - phase: 7
     value: 100
   - phase: 5
-    value: 50
+    value: 70
   - phase: 1
-    value: 20
+    value: 40
   - phase: 0
-    value: 10
+    value: 20
   - phase: 6
-    value: 75
+    value: 100
   waterConsumption:
   - phase: 2
     value: 10
@@ -100,7 +100,7 @@ MonoBehaviour:
   - phase: 8
     value: 0
   - phase: 7
-    value: 250
+    value: 200
   - phase: 5
     value: 75
   - phase: 1
@@ -108,4 +108,4 @@ MonoBehaviour:
   - phase: 0
     value: 25
   - phase: 6
-    value: 200
+    value: 300

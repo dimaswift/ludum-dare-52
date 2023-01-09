@@ -16,7 +16,12 @@ namespace ECF.Views
         public override void Init(ISimulation simulation)
         {
             base.Init(simulation);
-            Animator.SetBool(Holding, false);
+            
+            if (Animator != null)
+            {
+                Animator.SetBool(Holding, false);
+            }
+          
             if (pickedUpResult != null)
             {
                 Destroy(pickedUpResult.transform.gameObject);
